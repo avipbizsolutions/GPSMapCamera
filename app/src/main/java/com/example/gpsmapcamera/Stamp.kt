@@ -26,7 +26,15 @@ object Stamp {
     fun formatTime(d: Date): String =
         SimpleDateFormat("EEE, dd/MM/yyyy hh:mm a 'GMT'XXX", Locale.getDefault()).format(d)
 
-    fun draw(photo: Bitmap, map: Bitmap?, loc: Location?, place: PlaceInfo, time: Date) {
+    /** [heading] = direction the camera faced (degrees from north); adds a north arrow when set. */
+    fun draw(
+        photo: Bitmap,
+        map: Bitmap?,
+        loc: Location?,
+        place: PlaceInfo,
+        time: Date,
+        heading: Float? = null,
+    ) {
         val c = Canvas(photo)
         val unit = min(photo.width, photo.height).toFloat()
         val margin = unit * 0.025f
@@ -55,6 +63,7 @@ object Stamp {
         val body = buildString {
             if (place.address.isNotBlank()) appendLine(place.address)
             if (loc != null) appendLine(formatLatLon(loc))
+            if (heading != null) appendLine("Facing ${Compass.label(heading)}")
             append(formatTime(time))
         }
 
@@ -86,6 +95,18 @@ object Stamp {
         c.translate(0f, titleLayout.height + gap)
         bodyLayout.draw(c)
         c.restore()
+
+        // North symbol in the top-right corner of the photo.
+        if (heading != null) {
+            val radius = unit * 0.07f
+            Compass.drawNorthArrow(
+                c,
+                photo.width - margin - radius,
+                margin + radius,
+                radius,
+                heading,
+            )
+        }
     }
 
     private fun layout(text: String, paint: TextPaint, width: Int, maxLines: Int): StaticLayout =

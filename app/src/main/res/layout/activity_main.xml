@@ -9,6 +9,56 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Rule-of-thirds grid (touches pass through to the preview) -->
+    <com.example.gpsmapcamera.GridOverlayView
+        android:id="@+id/gridOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Grid on/off -->
+    <ImageButton
+        android:id="@+id/gridButton"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/round_button_background"
+        android:contentDescription="@string/grid_toggle"
+        android:padding="10dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_grid" />
+
+    <!-- Live compass -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="84dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <com.example.gpsmapcamera.CompassView
+            android:id="@+id/compassView"
+            android:layout_width="68dp"
+            android:layout_height="68dp" />
+
+        <TextView
+            android:id="@+id/headingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/chip_background"
+            android:paddingStart="8dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="2dp"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
     <!-- Tap-to-focus ring (positioned in code) -->
     <View
         android:id="@+id/focusRing"

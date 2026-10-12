@@ -6,6 +6,7 @@ import android.content.ContentUris
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.hardware.GeomagneticField
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -63,10 +64,23 @@ class MainActivity : AppCompatActivity() {
     private companion object {
         const val PREFS = "settings"
         const val KEY_HD = "hd"
+        const val KEY_GRID = "grid"
     }
 
     /** Location/time captured at the moment the shutter is pressed. */
-    private data class Snapshot(val loc: Location?, val place: PlaceInfo, val time: Date)
+    private data class Snapshot(
+        val loc: Location?,
+        val place: PlaceInfo,
+        val time: Date,
+        val heading: Float?,
+    )
+
+    private lateinit var gridOverlay: View
+    private lateinit var gridButton: ImageButton
+    private lateinit var compassView: CompassView
+    private lateinit var headingText: TextView
+    private lateinit var headingProvider: HeadingProvider
+    private var lastHeadingUi = 0L
 
     private lateinit var previewView: PreviewView
     private lateinit var infoText: TextView
@@ -154,6 +168,7 @@ class MainActivity : AppCompatActivity() {
         )
         zoomChips.forEach { (chip, ratio) -> chip.setOnClickListener { setZoom(ratio) } }
         setupGestures()
+        setupGridAndCompass()
 
         hd = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_HD, true)
         qualityChip.setOnClickListener { toggleQuality() }
@@ -186,6 +201,44 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         refreshThumbnail()
+        headingProvider.start()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        headingProvider.stop()
+    }
+
+    private fun setupGridAndCompass() {
+        gridOverlay = findViewById(R.id.gridOverlay)
+        gridButton = findViewById(R.id.gridButton)
+        compassView = findViewById(R.id.compassView)
+        headingText = findViewById(R.id.headingText)
+
+        val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
+        fun applyGrid(on: Boolean) {
+            gridOverlay.visibility = if (on) View.VISIBLE else View.GONE
+            gridButton.isSelected = on
+        }
+        applyGrid(prefs.getBoolean(KEY_GRID, true))
+        gridButton.setOnClickListener {
+            val on = !gridButton.isSelected
+            prefs.edit().putBoolean(KEY_GRID, on).apply()
+            applyGrid(on)
+        }
+
+        headingProvider = HeadingProvider(this) { deg ->
+            compassView.heading = deg
+            val now = System.currentTimeMillis()
+            if (now - lastHeadingUi > 150) { // keep the text calm
+                lastHeadingUi = now
+                headingText.text = Compass.label(deg)
+            }
+        }
+        if (!headingProvider.available) {
+            compassView.visibility = View.GONE
+            headingText.visibility = View.GONE
+        }
     }
 
     override fun onStop() {
@@ -380,7 +433,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun snapshot(): Snapshot {
-        val s = Snapshot(currentLocation, placeInfo, Date())
+        val s = Snapshot(currentLocation, placeInfo, Date(), headingProvider.heading)
         if (s.loc == null) toast(getString(R.string.no_fix_warning))
         return s
     }
@@ -421,7 +474,7 @@ class MainActivity : AppCompatActivity() {
                 val (uri, thumb) = withContext(Dispatchers.IO) {
                     val photo = PhotoSaver.prepare(raw, rotation, maxDim)
                     val map = snap.loc?.let { MapTiles.render(it.latitude, it.longitude, zoom = 16, sizePx = 512) }
-                    Stamp.draw(photo, map, snap.loc, snap.place, snap.time)
+                    Stamp.draw(photo, map, snap.loc, snap.place, snap.time, snap.heading)
                     val savedUri = PhotoSaver.save(this@MainActivity, photo, snap.loc, snap.time, jpegQuality)
                     val small = Bitmap.createScaledBitmap(
                         photo, 200, (200f * photo.height / photo.width).toInt(), true
@@ -586,6 +639,10 @@ class MainActivity : AppCompatActivity() {
         if (!isBetter) return
 
         currentLocation = loc
+        // Magnetic → true north correction for this place.
+        headingProvider.declination = GeomagneticField(
+            loc.latitude.toFloat(), loc.longitude.toFloat(), loc.altitude.toFloat(), System.currentTimeMillis()
+        ).declination
         updateInfoText()
 
         val g = geocodedLocation

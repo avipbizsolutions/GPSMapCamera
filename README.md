@@ -6,6 +6,7 @@ Take a photo or record a video and get a stamp burned into it: mini map with a p
 
 - **HD / SD** chip (top-right): HD = full-size photos and 1080p video; SD = 1280px photos and 480p video for small files.
 - **Zoom:** pinch on the preview, or tap the .5x / 1x / 2x / 5x buttons (works while recording too). Tap the preview to focus.
+- **Grid & compass:** grid button (top-left) toggles rule-of-thirds lines; the live compass below it shows the direction the camera faces (true north). Photos get a north-arrow symbol (top-right) and a "Facing NE 45°" line in the stamp.
 - **PHOTO / VIDEO** switch above the shutter. In video mode, tap the red button to start, tap again to stop; the stamp is then added to the video (takes a few seconds).
 - **Bottom-left thumbnail** opens the app's gallery: tap photos/videos to select, then **Share** to send them all at once. Long-press an item to view it.
 - **Share icon (right)** quickly shares the last photo or video.
