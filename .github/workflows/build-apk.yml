@@ -20,7 +20,16 @@ jobs:
           gradle-version: "8.7"
 
       - name: Build debug APK
-        run: gradle assembleDebug
+        run: |
+          set -o pipefail
+          gradle assembleDebug --console=plain 2>&1 | tee build.log
+
+      - name: Report build errors
+        if: failure()
+        run: |
+          grep -E "^e: |error:|ERROR:|What went wrong" -A4 build.log | head -60 > errors.txt || true
+          msg=$(sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g' errors.txt)
+          echo "::error title=Build errors::${msg}"
 
       - uses: actions/upload-artifact@v4
         with:
