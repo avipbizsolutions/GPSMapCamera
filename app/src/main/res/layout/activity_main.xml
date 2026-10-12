@@ -9,6 +9,49 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Recording timer -->
+    <TextView
+        android:id="@+id/recTimer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/rec_background"
+        android:paddingStart="14dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="6dp"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <!-- Shown while the GPS stamp is burned into a video -->
+    <LinearLayout
+        android:id="@+id/processingView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/info_background"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminate="true" />
+
+        <TextView
+            android:id="@+id/processingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+    </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,47 +73,88 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#99000000"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="24dp"
-            android:paddingTop="16dp"
-            android:paddingEnd="24dp"
+            android:orientation="vertical"
+            android:paddingTop="12dp"
             android:paddingBottom="28dp">
 
-            <ImageView
-                android:id="@+id/thumbnail"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:background="@drawable/thumb_background"
-                android:contentDescription="@string/last_photo"
-                android:padding="2dp"
-                android:scaleType="centerCrop" />
+            <!-- Photo / Video switch -->
+            <LinearLayout
+                android:id="@+id/modeBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="14dp"
+                android:orientation="horizontal">
 
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
+                <TextView
+                    android:id="@+id/photoTab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="18dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="18dp"
+                    android:paddingBottom="6dp"
+                    android:text="@string/mode_photo"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
-            <ImageButton
-                android:id="@+id/shutterButton"
-                android:layout_width="76dp"
-                android:layout_height="76dp"
-                android:background="@drawable/shutter_button"
-                android:contentDescription="@string/take_photo" />
+                <TextView
+                    android:id="@+id/videoTab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="18dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="18dp"
+                    android:paddingBottom="6dp"
+                    android:text="@string/mode_video"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp">
 
-            <ImageButton
-                android:id="@+id/shareButton"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="@string/share_photo"
-                android:enabled="false"
-                android:src="@android:drawable/ic_menu_share" />
+                <ImageView
+                    android:id="@+id/thumbnail"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/thumb_background"
+                    android:contentDescription="@string/open_gallery"
+                    android:padding="2dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_gallery" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <ImageButton
+                    android:id="@+id/shutterButton"
+                    android:layout_width="76dp"
+                    android:layout_height="76dp"
+                    android:background="@drawable/shutter_button"
+                    android:contentDescription="@string/take_photo" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <ImageButton
+                    android:id="@+id/shareButton"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/share"
+                    android:enabled="false"
+                    android:src="@android:drawable/ic_menu_share" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

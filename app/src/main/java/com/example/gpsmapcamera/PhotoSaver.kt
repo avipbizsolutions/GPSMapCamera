@@ -13,6 +13,7 @@ import android.provider.MediaStore
 import androidx.exifinterface.media.ExifInterface
 import java.io.File
 import java.io.IOException
+import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -38,34 +39,61 @@ object PhotoSaver {
 
     /** Saves to Pictures/GPSMapCamera in the gallery and writes GPS EXIF tags. */
     fun save(context: Context, bitmap: Bitmap, loc: Location?, time: Date): Uri {
-        val name = "GPS_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(time) + ".jpg"
         val resolver = context.contentResolver
+        return insert(
+            resolver, MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            fileName(time, "jpg"), "image/jpeg", time,
+        ) { uri, out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 92, out)
+            out.close()
+            writeExif(resolver, uri, loc, time)
+        }
+    }
+
+    /** Copies a finished video file into Pictures/GPSMapCamera in the gallery. */
+    fun saveVideo(context: Context, file: File, time: Date): Uri =
+        insert(
+            context.contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            fileName(time, "mp4"), "video/mp4", time,
+        ) { _, out ->
+            file.inputStream().use { it.copyTo(out) }
+        }
+
+    private fun fileName(time: Date, ext: String) =
+        "GPS_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(time) + "." + ext
+
+    private fun insert(
+        resolver: ContentResolver,
+        collection: Uri,
+        name: String,
+        mime: String,
+        time: Date,
+        write: (Uri, OutputStream) -> Unit,
+    ): Uri {
         val values = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, name)
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+            put(MediaStore.MediaColumns.MIME_TYPE, mime)
             put(MediaStore.Images.Media.DATE_TAKEN, time.time)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/GPSMapCamera")
-                put(MediaStore.Images.Media.IS_PENDING, 1)
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + MediaRepository.FOLDER)
+                put(MediaStore.MediaColumns.IS_PENDING, 1)
             } else {
                 @Suppress("DEPRECATION")
                 val dir = File(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                    "GPSMapCamera"
+                    MediaRepository.FOLDER
                 ).apply { mkdirs() }
                 @Suppress("DEPRECATION")
-                put(MediaStore.Images.Media.DATA, File(dir, name).absolutePath)
+                put(MediaStore.MediaColumns.DATA, File(dir, name).absolutePath)
             }
         }
 
-        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-            ?: throw IOException("Could not create gallery entry")
+        val uri = resolver.insert(collection, values) ?: throw IOException("Could not create gallery entry")
         try {
-            resolver.openOutputStream(uri)?.use { bitmap.compress(Bitmap.CompressFormat.JPEG, 92, it) }
-                ?: throw IOException("Could not open output stream")
-            writeExif(resolver, uri, loc, time)
+            val out = resolver.openOutputStream(uri) ?: throw IOException("Could not open output stream")
+            out.use { write(uri, it) }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val done = ContentValues().apply { put(MediaStore.Images.Media.IS_PENDING, 0) }
+                val done = ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }
                 resolver.update(uri, done, null, null)
             }
         } catch (e: Exception) {

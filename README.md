@@ -1,6 +1,10 @@
 # GPS Map Camera (Android)
 
-Take a photo and get a stamp burned into it: mini map with a pin, address, latitude/longitude and date/time. Photos are saved to **Pictures/GPSMapCamera** in your gallery (with GPS in the EXIF too) and can be shared from the app.
+Take a photo or record a video and get a stamp burned into it: mini map with a pin, address, latitude/longitude and date/time. Everything is saved to **Pictures/GPSMapCamera** in your gallery (photos also get GPS in the EXIF).
+
+- **PHOTO / VIDEO** switch above the shutter. In video mode, tap the red button to start, tap again to stop; the stamp is then added to the video (takes a few seconds).
+- **Bottom-left thumbnail** opens the app's gallery: tap photos/videos to select, then **Share** to send them all at once. Long-press an item to view it.
+- **Share icon (right)** quickly shares the last photo or video.
 
 ## 100% free – no API keys, no billing
 - **Map thumbnail:** OpenStreetMap tiles (free, attribution shown on the map)
@@ -34,6 +38,9 @@ Allow Camera and Location on first launch. Wait until the coordinates show at th
 | `MapTiles.kt` | Downloads OSM tiles and draws the map + pin |
 | `Stamp.kt` | Draws the info panel onto the photo |
 | `Geocoding.kt` | Turns coordinates into an address |
-| `PhotoSaver.kt` | Rotates, saves to gallery, writes EXIF GPS |
+| `PhotoSaver.kt` | Rotates, saves photos/videos to gallery, writes EXIF GPS |
+| `VideoStamper.kt` | Burns the stamp into videos (AndroidX Media3, free) |
+| `GalleryActivity.kt` | In-app gallery with multi-select sharing |
+| `MediaRepository.kt` | Finds the app's saved photos and videos |
 
 Note: OpenStreetMap's free tiles are meant for light use; fine for personal use. If you ever publish this widely, switch to a tile provider with a free tier and your own key.
