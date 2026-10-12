@@ -20,7 +20,7 @@
     <string name="auto_update_message">Version %1$s is available. To keep AVIP GPSCam updated automatically, allow it to install its own updates on the next screen. You only need to do this once.</string>
     <string name="allow">Allow</string>
     <string name="later">Later</string>
-    <string name="grid_toggle">Show or hide grid lines</string>
+    <string name="grid_toggle">Show or hide grid lines and level</string>
     <string name="zoom_05">.5x</string>
     <string name="zoom_1">1x</string>
     <string name="zoom_2">2x</string>

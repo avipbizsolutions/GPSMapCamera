@@ -12,6 +12,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.view.Surface
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -75,12 +76,10 @@ class MainActivity : AppCompatActivity() {
         val heading: Float?,
     )
 
-    private lateinit var gridOverlay: View
+    private lateinit var gridOverlay: GridOverlayView
     private lateinit var gridButton: ImageButton
-    private lateinit var compassView: CompassView
-    private lateinit var headingText: TextView
     private lateinit var headingProvider: HeadingProvider
-    private var lastHeadingUi = 0L
+    private lateinit var tiltProvider: TiltProvider
 
     private lateinit var previewView: PreviewView
     private lateinit var infoText: TextView
@@ -168,7 +167,7 @@ class MainActivity : AppCompatActivity() {
         )
         zoomChips.forEach { (chip, ratio) -> chip.setOnClickListener { setZoom(ratio) } }
         setupGestures()
-        setupGridAndCompass()
+        setupGridAndLevel()
 
         hd = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_HD, true)
         qualityChip.setOnClickListener { toggleQuality() }
@@ -202,23 +201,28 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         refreshThumbnail()
         headingProvider.start()
+        previewView.post { updateScreenRotation() }
+        if (gridOverlay.visibility == View.VISIBLE) tiltProvider.start()
     }
 
     override fun onPause() {
         super.onPause()
         headingProvider.stop()
+        tiltProvider.stop()
     }
 
-    private fun setupGridAndCompass() {
+    private fun setupGridAndLevel() {
         gridOverlay = findViewById(R.id.gridOverlay)
         gridButton = findViewById(R.id.gridButton)
-        compassView = findViewById(R.id.compassView)
-        headingText = findViewById(R.id.headingText)
+
+        // Level line moves with the phone's tilt.
+        tiltProvider = TiltProvider(this) { roll -> gridOverlay.setRoll(roll) }
 
         val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
         fun applyGrid(on: Boolean) {
             gridOverlay.visibility = if (on) View.VISIBLE else View.GONE
             gridButton.isSelected = on
+            if (on) tiltProvider.start() else tiltProvider.stop()
         }
         applyGrid(prefs.getBoolean(KEY_GRID, true))
         gridButton.setOnClickListener {
@@ -227,17 +231,21 @@ class MainActivity : AppCompatActivity() {
             applyGrid(on)
         }
 
-        headingProvider = HeadingProvider(this) { deg ->
-            compassView.heading = deg
-            val now = System.currentTimeMillis()
-            if (now - lastHeadingUi > 150) { // keep the text calm
-                lastHeadingUi = now
-                headingText.text = Compass.label(deg)
-            }
-        }
-        if (!headingProvider.available) {
-            compassView.visibility = View.GONE
-            headingText.visibility = View.GONE
+        // No compass on screen; the heading is only used for the photo's north arrow.
+        headingProvider = HeadingProvider(this) { }
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        updateScreenRotation()
+    }
+
+    private fun updateScreenRotation() {
+        tiltProvider.screenRotation = when (previewView.display?.rotation) {
+            Surface.ROTATION_90 -> 90
+            Surface.ROTATION_180 -> 180
+            Surface.ROTATION_270 -> 270
+            else -> 0
         }
     }
 

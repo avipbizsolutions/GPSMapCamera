@@ -120,92 +120,43 @@ class HeadingProvider(context: Context, private val onHeading: (Float) -> Unit) 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
 }
 
-/** Live compass dial: the card turns so its red N always points north. */
-class CompassView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-) : View(context, attrs) {
-
-    var heading = 0f
-        set(value) {
-            field = value
-            invalidate()
-        }
-
-    private val density = resources.displayMetrics.density
-    private val bg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.argb(110, 0, 0, 0) }
-    private val ring = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.WHITE
-        style = Paint.Style.STROKE
-        strokeWidth = 1.5f * density
-    }
-    private val tick = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(200, 255, 255, 255)
-        strokeWidth = 1.2f * density
-    }
-    private val letter = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.WHITE
-        textAlign = Paint.Align.CENTER
-        typeface = Typeface.DEFAULT_BOLD
-    }
-    private val northPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(229, 57, 53) }
-    private val marker = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(255, 213, 79) }
-
-    override fun onDraw(canvas: Canvas) {
-        val cx = width / 2f
-        val cy = height / 2f
-        val r = min(width, height) / 2f - 4f * density
-        canvas.drawCircle(cx, cy, r, bg)
-        canvas.drawCircle(cx, cy, r, ring)
-
-        canvas.save()
-        canvas.rotate(-heading, cx, cy)
-        for (i in 0 until 12) {
-            val len = if (i % 3 == 0) r * 0.18f else r * 0.1f
-            canvas.drawLine(cx, cy - r, cx, cy - r + len, tick)
-            canvas.rotate(30f, cx, cy)
-        }
-        letter.textSize = r * 0.34f
-        val textR = r * 0.58f
-        val baseline = letter.textSize * 0.35f
-        val labels = listOf("N" to 0f, "E" to 90f, "S" to 180f, "W" to 270f)
-        for ((text, a) in labels) {
-            canvas.save()
-            canvas.rotate(a, cx, cy)
-            letter.color = if (text == "N") Color.rgb(255, 82, 82) else Color.WHITE
-            canvas.drawText(text, cx, cy - textR + baseline, letter)
-            canvas.restore()
-        }
-        // Red north needle
-        val needle = Path().apply {
-            moveTo(cx, cy - r * 0.32f)
-            lineTo(cx - r * 0.1f, cy)
-            lineTo(cx + r * 0.1f, cy)
-            close()
-        }
-        canvas.drawPath(needle, northPaint)
-        canvas.restore()
-
-        // Fixed yellow marker = the direction the camera is facing.
-        val m = Path().apply {
-            moveTo(cx, cy - r + r * 0.22f)
-            lineTo(cx - r * 0.12f, cy - r - 2f * density)
-            lineTo(cx + r * 0.12f, cy - r - 2f * density)
-            close()
-        }
-        canvas.drawPath(m, marker)
-    }
-}
-
-/** Rule-of-thirds grid drawn over the camera preview. */
+/**
+ * Rule-of-thirds grid plus a level line in the middle. The level line stays
+ * parallel to the real horizon and turns green when the phone is straight.
+ */
 class GridOverlayView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
 ) : View(context, attrs) {
 
+    private val density = resources.displayMetrics.density
     private val line = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.argb(130, 255, 255, 255)
-        strokeWidth = 1f * resources.displayMetrics.density
+        strokeWidth = 1f * density
+    }
+    private val levelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        strokeWidth = 2.5f * density
+        strokeCap = Paint.Cap.ROUND
+    }
+    private val refPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        strokeWidth = 2.5f * density
+        strokeCap = Paint.Cap.ROUND
+    }
+    private val anglePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        textAlign = Paint.Align.CENTER
+        textSize = 13f * density
+        typeface = Typeface.DEFAULT_BOLD
+        setShadowLayer(3f * density, 0f, 0f, Color.BLACK)
+    }
+
+    /** Phone tilt relative to the screen, in degrees; null hides the level. */
+    private var roll: Float? = null
+
+    fun setRoll(value: Float?) {
+        roll = value
+        invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -215,5 +166,71 @@ class GridOverlayView @JvmOverloads constructor(
             canvas.drawLine(w * i / 3f, 0f, w * i / 3f, h, line)
             canvas.drawLine(0f, h * i / 3f, w, h * i / 3f, line)
         }
+
+        val r = roll ?: return
+        val cx = w / 2f
+        val cy = h / 2f
+        // Distance to the nearest straight orientation (portrait or landscape).
+        val off = r - 90f * Math.round(r / 90f)
+        val level = kotlin.math.abs(off) < 1f
+        val half = min(w, h) * 0.18f
+
+        // Fixed white reference ticks either side of the centre.
+        val gap = half + 8f * density
+        canvas.drawLine(cx - gap - 18f * density, cy, cx - gap, cy, refPaint)
+        canvas.drawLine(cx + gap, cy, cx + gap + 18f * density, cy, refPaint)
+
+        // Horizon line (rotates against the phone's tilt).
+        levelPaint.color = if (level) Color.rgb(76, 217, 100) else Color.rgb(255, 213, 79)
+        canvas.save()
+        canvas.rotate(if (level) -90f * Math.round(r / 90f) else -r, cx, cy)
+        canvas.drawLine(cx - half, cy, cx + half, cy, levelPaint)
+        canvas.restore()
+
+        val text = if (level) "0°" else "${kotlin.math.abs(off).roundToInt()}°"
+        anglePaint.color = levelPaint.color
+        canvas.drawText(text, cx, cy - 14f * density, anglePaint)
     }
+}
+
+/**
+ * Reports how far the phone is tilted (rolled) relative to the screen, from
+ * the gravity sensor. Reports null when the phone is lying flat.
+ */
+class TiltProvider(context: Context, private val onRoll: (Float?) -> Unit) : SensorEventListener {
+    private val sensorManager = context.getSystemService(SensorManager::class.java)
+    private val sensor: Sensor? = sensorManager?.getDefaultSensor(Sensor.TYPE_GRAVITY)
+        ?: sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+    private val g = FloatArray(3)
+    private var initialised = false
+
+    /** Screen rotation in degrees (0, 90, 180, 270). */
+    var screenRotation = 0
+
+    fun start() {
+        sensor?.let { sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_UI) }
+    }
+
+    fun stop() {
+        sensorManager?.unregisterListener(this)
+    }
+
+    override fun onSensorChanged(event: SensorEvent) {
+        if (!initialised) {
+            event.values.copyInto(g, 0, 0, 3)
+            initialised = true
+        } else {
+            for (i in 0..2) g[i] += 0.2f * (event.values[i] - g[i])
+        }
+        val norm = kotlin.math.sqrt(g[0] * g[0] + g[1] * g[1] + g[2] * g[2])
+        if (norm < 1f || kotlin.math.abs(g[2]) / norm > 0.85f) {
+            onRoll(null) // flat: pointing at the floor or the sky
+            return
+        }
+        var roll = Math.toDegrees(atan2(-g[0], g[1]).toDouble()).toFloat() + screenRotation
+        roll = ((roll + 180f) % 360f + 360f) % 360f - 180f
+        onRoll(roll)
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
 }
