@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,10 +22,17 @@ jobs:
         with:
           gradle-version: "8.7"
 
+      - name: Set version
+        run: |
+          code=$((100 + GITHUB_RUN_NUMBER))
+          echo "VERSION_CODE=$code" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=2.0.$code" >> "$GITHUB_ENV"
+
       - name: Build debug APK
         run: |
           set -o pipefail
           gradle assembleDebug --console=plain 2>&1 | tee build.log
+          cp app/build/outputs/apk/debug/app-debug.apk "AVIP-GPSCam-${VERSION_NAME}.apk"
 
       - name: Report build errors
         if: failure()
@@ -33,5 +43,16 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: AVIP-GPSCam-v2.0-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: AVIP-GPSCam-${{ env.VERSION_NAME }}-apk
+          path: AVIP-GPSCam-${{ env.VERSION_NAME }}.apk
+
+      # Phones check this release on launch and update themselves.
+      - name: Publish release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION_NAME }}
+          name: AVIP GPSCam ${{ env.VERSION_NAME }}
+          body: Automatic build from commit ${{ github.sha }}.
+          files: AVIP-GPSCam-${{ env.VERSION_NAME }}.apk
+          make_latest: true

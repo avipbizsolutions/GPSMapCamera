@@ -10,6 +10,11 @@ Take a photo or record a video and get a stamp burned into it: mini map with a p
 - **Bottom-left thumbnail** opens the app's gallery: tap photos/videos to select, then **Share** to send them all at once. Long-press an item to view it.
 - **Share icon (right)** quickly shares the last photo or video.
 
+## Automatic updates
+Every push to `main` publishes a GitHub Release (`v2.0.<build>`). On launch the app checks the latest release; if it is newer it downloads and installs it from the splash screen, then shows "Updated to the latest version". The first time, Android asks once to allow the app to install updates; depending on the phone, each update may still need one tap on Android's "Update" prompt.
+
+Latest APK: https://github.com/avipbizsolutions/GPSMapCamera/releases/latest
+
 ## 100% free – no API keys, no billing
 - **Map thumbnail:** OpenStreetMap tiles (free, attribution shown on the map)
 - **Address:** Android's built-in Geocoder (free)

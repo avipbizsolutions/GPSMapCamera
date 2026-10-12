@@ -10,6 +10,16 @@
     <string name="quality_switched_hd">HD – best quality (photos full size, videos 1080p)</string>
     <string name="quality_switched_sd">SD – smaller files (photos 1280px, videos 480p)</string>
     <string name="quality_toggle">Switch HD / SD quality</string>
+    <string name="updating_to">Updating to version %1$s…</string>
+    <string name="installing_update">Installing update…</string>
+    <string name="update_failed">Update could not be installed – will try again next time.</string>
+    <string name="updated_title">AVIP GPSCam updated</string>
+    <string name="updated_text">Updated to the latest version %1$s</string>
+    <string name="updates_channel">App updates</string>
+    <string name="auto_update_title">Automatic updates</string>
+    <string name="auto_update_message">Version %1$s is available. To keep AVIP GPSCam updated automatically, allow it to install its own updates on the next screen. You only need to do this once.</string>
+    <string name="allow">Allow</string>
+    <string name="later">Later</string>
     <string name="zoom_05">.5x</string>
     <string name="zoom_1">1x</string>
     <string name="zoom_2">2x</string>

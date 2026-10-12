@@ -11,8 +11,11 @@ android {
         applicationId = "com.example.gpsmapcamera"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "2.0"
+        // GitHub Actions sets VERSION_CODE for every build, so each release is newer
+        // than the last and the app can update itself.
+        val buildNumber = (System.getenv("VERSION_CODE") ?: "4").toInt()
+        versionCode = buildNumber
+        versionName = "2.0.$buildNumber"
     }
 
     // Same signing key on every build, so new versions install over old ones.

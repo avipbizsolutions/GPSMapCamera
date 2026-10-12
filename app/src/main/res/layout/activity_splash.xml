@@ -49,6 +49,25 @@
             android:paddingBottom="4dp"
             android:textColor="#FFFFFF"
             android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/updateProgress"
+            style="@android:style/Widget.Material.ProgressBar.Horizontal"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:max="100"
+            android:progressTint="#FFD54F"
+            android:visibility="gone" />
     </LinearLayout>
 
     <LinearLayout
