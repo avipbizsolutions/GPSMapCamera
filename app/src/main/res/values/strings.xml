@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GPS Map Camera</string>
+    <string name="waiting_gps">Waiting for GPS… (step outside for a faster fix)</string>
+    <string name="location_off">Location is turned off. Turn it on in Settings.</string>
+    <string name="no_location_permission">Location permission denied – photos will have no GPS stamp.</string>
+    <string name="camera_permission_needed">Camera permission is needed to take photos.</string>
+    <string name="no_fix_warning">No GPS fix yet – photo will be stamped without location.</string>
+    <string name="camera_failed">Camera error: %1$s</string>
+    <string name="capture_failed">Capture failed: %1$s</string>
+    <string name="save_failed">Could not save photo: %1$s</string>
+    <string name="saved">Saved to Pictures/GPSMapCamera</string>
+    <string name="share_photo">Share photo</string>
+    <string name="take_photo">Take photo</string>
+    <string name="last_photo">Last photo</string>
+</resources>
