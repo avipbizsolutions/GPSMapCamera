@@ -18,7 +18,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import android.view.GestureDetector
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.FocusMeteringAction
+import androidx.camera.core.ZoomState
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -47,6 +53,7 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
@@ -80,6 +87,12 @@ class MainActivity : AppCompatActivity() {
     private var hd = true
     private lateinit var qualityChip: TextView
     private var cameraProvider: ProcessCameraProvider? = null
+    private var camera: Camera? = null
+    private var lastZoom: Float? = null
+    private lateinit var zoomChips: List<Pair<TextView, Float>>
+    private lateinit var zoomLabel: TextView
+    private lateinit var focusRing: View
+    private val hideZoomLabel = Runnable { zoomLabel.visibility = View.GONE }
     private var imageCapture: ImageCapture? = null
     private var videoCapture: VideoCapture<Recorder>? = null
     private var recording: Recording? = null
@@ -128,6 +141,16 @@ class MainActivity : AppCompatActivity() {
         processingView = findViewById(R.id.processingView)
         processingText = findViewById(R.id.processingText)
         qualityChip = findViewById(R.id.qualityChip)
+        zoomLabel = findViewById(R.id.zoomLabel)
+        focusRing = findViewById(R.id.focusRing)
+        zoomChips = listOf(
+            findViewById<TextView>(R.id.zoom05) to 0.5f,
+            findViewById<TextView>(R.id.zoom1) to 1f,
+            findViewById<TextView>(R.id.zoom2) to 2f,
+            findViewById<TextView>(R.id.zoom5) to 5f,
+        )
+        zoomChips.forEach { (chip, ratio) -> chip.setOnClickListener { setZoom(ratio) } }
+        setupGestures()
 
         hd = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_HD, true)
         qualityChip.setOnClickListener { toggleQuality() }
@@ -188,6 +211,10 @@ class MainActivity : AppCompatActivity() {
         val preview = Preview.Builder().build().also {
             it.setSurfaceProvider(previewView.surfaceProvider)
         }
+        // Keep the user's zoom level across mode / quality switches.
+        val keepZoom = camera?.cameraInfo?.zoomState?.value?.zoomRatio
+        camera?.cameraInfo?.zoomState?.removeObservers(this)
+        camera = null
         try {
             provider.unbindAll()
             imageCapture = null
@@ -209,7 +236,7 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
                 val capture = builder.build()
-                provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
+                camera = provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
                 imageCapture = capture
             } else {
                 val recorder = Recorder.Builder()
@@ -224,12 +251,77 @@ class MainActivity : AppCompatActivity() {
                     )
                     .build()
                 val capture = VideoCapture.withOutput(recorder)
-                provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
+                camera = provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
                 videoCapture = capture
             }
+            lastZoom = null
+            camera?.cameraInfo?.zoomState?.observe(this) { onZoomChanged(it) }
+            keepZoom?.let { setZoom(it) }
         } catch (e: Exception) {
             toast(getString(R.string.camera_failed, e.message ?: ""))
         }
+    }
+
+    // ---------- Zoom & focus ----------
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupGestures() {
+        val scaleDetector = ScaleGestureDetector(this,
+            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    val current = camera?.cameraInfo?.zoomState?.value?.zoomRatio ?: return false
+                    setZoom(current * detector.scaleFactor)
+                    return true
+                }
+            })
+        val tapDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onSingleTapUp(e: MotionEvent): Boolean {
+                focusAt(e.x, e.y)
+                return true
+            }
+        })
+        previewView.setOnTouchListener { _, event ->
+            scaleDetector.onTouchEvent(event)
+            if (!scaleDetector.isInProgress && event.pointerCount == 1) tapDetector.onTouchEvent(event)
+            true
+        }
+    }
+
+    private fun setZoom(ratio: Float) {
+        val cam = camera ?: return
+        val state = cam.cameraInfo.zoomState.value ?: return
+        cam.cameraControl.setZoomRatio(ratio.coerceIn(state.minZoomRatio, state.maxZoomRatio))
+    }
+
+    private fun onZoomChanged(state: ZoomState) {
+        for ((chip, ratio) in zoomChips) {
+            val supported = ratio >= state.minZoomRatio - 0.01f && ratio <= state.maxZoomRatio + 0.01f
+            chip.visibility = if (supported) View.VISIBLE else View.GONE
+            chip.isSelected = abs(state.zoomRatio - ratio) < 0.05f
+        }
+        val previous = lastZoom
+        lastZoom = state.zoomRatio
+        if (previous != null && abs(previous - state.zoomRatio) > 0.01f) {
+            zoomLabel.text = String.format(Locale.US, "%.1fx", state.zoomRatio)
+            zoomLabel.visibility = View.VISIBLE
+            zoomLabel.removeCallbacks(hideZoomLabel)
+            zoomLabel.postDelayed(hideZoomLabel, 1200)
+        }
+    }
+
+    private fun focusAt(x: Float, y: Float) {
+        val cam = camera ?: return
+        val point = previewView.meteringPointFactory.createPoint(x, y)
+        val action = FocusMeteringAction.Builder(point)
+            .setAutoCancelDuration(3, TimeUnit.SECONDS)
+            .build()
+        cam.cameraControl.startFocusAndMetering(action)
+        focusRing.translationX = x - focusRing.width / 2f
+        focusRing.translationY = y - focusRing.height / 2f
+        focusRing.alpha = 1f
+        focusRing.visibility = View.VISIBLE
+        focusRing.animate().cancel()
+        focusRing.animate().alpha(0f).setStartDelay(700).setDuration(300).start()
     }
 
     private fun setMode(newMode: Mode) {

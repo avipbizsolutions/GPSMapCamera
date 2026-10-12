@@ -9,6 +9,30 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Tap-to-focus ring (positioned in code) -->
+    <View
+        android:id="@+id/focusRing"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:background="@drawable/focus_ring"
+        android:visibility="invisible" />
+
+    <!-- Zoom level shown while pinching -->
+    <TextView
+        android:id="@+id/zoomLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/chip_background"
+        android:paddingStart="18dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="8dp"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
     <!-- HD / SD quality switch -->
     <TextView
         android:id="@+id/qualityChip"
@@ -94,6 +118,38 @@
             android:orientation="vertical"
             android:paddingTop="12dp"
             android:paddingBottom="28dp">
+
+            <!-- Quick zoom buttons (pinch on the preview for any level) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/zoom_bar_background"
+                android:orientation="horizontal"
+                android:padding="4dp">
+
+                <TextView
+                    android:id="@+id/zoom05"
+                    style="@style/ZoomChip"
+                    android:text="@string/zoom_05"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/zoom1"
+                    style="@style/ZoomChip"
+                    android:text="@string/zoom_1" />
+
+                <TextView
+                    android:id="@+id/zoom2"
+                    style="@style/ZoomChip"
+                    android:text="@string/zoom_2" />
+
+                <TextView
+                    android:id="@+id/zoom5"
+                    style="@style/ZoomChip"
+                    android:text="@string/zoom_5" />
+            </LinearLayout>
 
             <!-- Photo / Video switch -->
             <LinearLayout
