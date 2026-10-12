@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ shows a system splash first; match it to the brand so the hand-off is seamless. -->
+    <style name="Theme.GPSMapCamera.Splash">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:statusBarColor">#08295F</item>
+        <item name="android:navigationBarColor">#0E7C8C</item>
+        <item name="android:windowSplashScreenBackground">#08295F</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    </style>
+</resources>

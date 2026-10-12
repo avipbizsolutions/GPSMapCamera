@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Full AVIP GPSCam logo (rounded tile) for the launch screen. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M24,0 H84 Q108,0 108,24 V84 Q108,108 84,108 H24 Q0,108 0,84 V24 Q0,0 24,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="108"
+                android:endY="108"
+                android:startX="0"
+                android:startY="0"
+                android:type="linear">
+                <item android:color="#0B3D91" android:offset="0" />
+                <item android:color="#12B5A6" android:offset="1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:pathData="M17,51 h8 M13,58 h12 M17,65 h8"
+        android:strokeWidth="3.2"
+        android:strokeColor="#FFFFFF"
+        android:strokeAlpha="0.9"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,41 L44,41 L47.5,35 L60.5,35 L64,41 L74,41 Q79,41 79,46 L79,70 Q79,75 74,75 L34,75 Q29,75 29,70 L29,46 Q29,41 34,41 Z" />
+    <path
+        android:fillColor="#0B3D91"
+        android:pathData="M41,58 a13,13 0 1,1 26,0 a13,13 0 1,1 -26,0 Z" />
+    <path
+        android:fillColor="#E6F7F5"
+        android:pathData="M44,58 a10,10 0 1,1 20,0 a10,10 0 1,1 -20,0 Z" />
+    <path
+        android:fillColor="#FF4D4F"
+        android:pathData="M54,48.5 C49.8,48.5 46.8,51.6 46.8,55.4 C46.8,60.4 54,66.8 54,66.8 C54,66.8 61.2,60.4 61.2,55.4 C61.2,51.6 58.2,48.5 54,48.5 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M51.4,55.4 a2.6,2.6 0 1,1 5.2,0 a2.6,2.6 0 1,1 -5.2,0 Z" />
+    <path
+        android:fillColor="#0B3D91"
+        android:pathData="M34.5,47 a2,2 0 1,1 4,0 a2,2 0 1,1 -4,0 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M66.5,38 a9.5,9.5 0 1,1 19,0 a9.5,9.5 0 1,1 -19,0 Z" />
+    <path
+        android:fillColor="#FFB300"
+        android:pathData="M67.5,38 a8.5,8.5 0 1,1 17,0 a8.5,8.5 0 1,1 -17,0 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M73.2,34.2 L80.2,38 L73.2,41.8 Z" />
+</vector>

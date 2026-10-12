@@ -51,7 +51,7 @@ object Stamp {
             setShadowLayer(unit * 0.003f, 0f, 0f, Color.BLACK)
         }
 
-        val title = place.title.ifBlank { if (loc == null) "Location unavailable" else "GPS Map Camera" }
+        val title = place.title.ifBlank { if (loc == null) "Location unavailable" else "AVIP GPSCam" }
         val body = buildString {
             if (place.address.isNotBlank()) appendLine(place.address)
             if (loc != null) appendLine(formatLatLon(loc))

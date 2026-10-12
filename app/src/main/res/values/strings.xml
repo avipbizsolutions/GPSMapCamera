@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">GPS Map Camera</string>
+    <string name="app_name">AVIP GPSCam</string>
+    <string name="tagline">GPS Photos &amp; Videos · Fast</string>
+    <string name="version_label">Version %1$s</string>
+    <string name="developed_by">Developed by</string>
+    <string name="company_name">AVIP Business Solutions LLP</string>
+    <string name="quality_hd">HD</string>
+    <string name="quality_sd">SD</string>
+    <string name="quality_switched_hd">HD – best quality (photos full size, videos 1080p)</string>
+    <string name="quality_switched_sd">SD – smaller files (photos 1280px, videos 480p)</string>
+    <string name="quality_toggle">Switch HD / SD quality</string>
     <string name="waiting_gps">Waiting for GPS… (step outside for a faster fix)</string>
     <string name="location_off">Location is turned off. Turn it on in Settings.</string>
     <string name="no_location_permission">Location permission denied – photos will have no GPS stamp.</string>

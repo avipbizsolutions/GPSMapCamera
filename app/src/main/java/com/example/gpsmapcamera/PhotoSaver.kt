@@ -23,8 +23,8 @@ import kotlin.math.min
 object PhotoSaver {
 
     /** Rotates upright, caps size to keep memory reasonable, and returns a mutable bitmap. */
-    fun prepare(src: Bitmap, rotation: Int): Bitmap {
-        val scale = min(1f, 4000f / max(src.width, src.height))
+    fun prepare(src: Bitmap, rotation: Int, maxDim: Int): Bitmap {
+        val scale = min(1f, maxDim.toFloat() / max(src.width, src.height))
         val m = Matrix().apply {
             postRotate(rotation.toFloat())
             postScale(scale, scale)
@@ -38,13 +38,13 @@ object PhotoSaver {
     }
 
     /** Saves to Pictures/GPSMapCamera in the gallery and writes GPS EXIF tags. */
-    fun save(context: Context, bitmap: Bitmap, loc: Location?, time: Date): Uri {
+    fun save(context: Context, bitmap: Bitmap, loc: Location?, time: Date, jpegQuality: Int): Uri {
         val resolver = context.contentResolver
         return insert(
             resolver, MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
             fileName(time, "jpg"), "image/jpeg", time,
         ) { uri, out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 92, out)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, jpegQuality, out)
             out.close()
             writeExif(resolver, uri, loc, time)
         }

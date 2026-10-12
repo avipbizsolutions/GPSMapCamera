@@ -23,6 +23,9 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
+import android.util.Size
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FallbackStrategy
 import androidx.camera.video.FileOutputOptions
@@ -50,6 +53,11 @@ class MainActivity : AppCompatActivity() {
 
     private enum class Mode { PHOTO, VIDEO }
 
+    private companion object {
+        const val PREFS = "settings"
+        const val KEY_HD = "hd"
+    }
+
     /** Location/time captured at the moment the shutter is pressed. */
     private data class Snapshot(val loc: Location?, val place: PlaceInfo, val time: Date)
 
@@ -69,6 +77,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cameraExecutor: ExecutorService
 
     private var mode = Mode.PHOTO
+    private var hd = true
+    private lateinit var qualityChip: TextView
     private var cameraProvider: ProcessCameraProvider? = null
     private var imageCapture: ImageCapture? = null
     private var videoCapture: VideoCapture<Recorder>? = null
@@ -117,6 +127,11 @@ class MainActivity : AppCompatActivity() {
         recTimer = findViewById(R.id.recTimer)
         processingView = findViewById(R.id.processingView)
         processingText = findViewById(R.id.processingText)
+        qualityChip = findViewById(R.id.qualityChip)
+
+        hd = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_HD, true)
+        qualityChip.setOnClickListener { toggleQuality() }
+        updateQualityUi()
 
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -178,17 +193,33 @@ class MainActivity : AppCompatActivity() {
             imageCapture = null
             videoCapture = null
             if (mode == Mode.PHOTO) {
-                val capture = ImageCapture.Builder()
+                val builder = ImageCapture.Builder()
                     .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                    .build()
+                if (!hd) {
+                    // SD: ask the camera for a small frame, which is faster too.
+                    builder.setResolutionSelector(
+                        ResolutionSelector.Builder()
+                            .setResolutionStrategy(
+                                ResolutionStrategy(
+                                    Size(1280, 960),
+                                    ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
+                                )
+                            )
+                            .build()
+                    )
+                }
+                val capture = builder.build()
                 provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
                 imageCapture = capture
             } else {
                 val recorder = Recorder.Builder()
                     .setQualitySelector(
-                        QualitySelector.from(
+                        if (hd) QualitySelector.from(
                             Quality.FHD,
-                            FallbackStrategy.lowerQualityOrHigherThan(Quality.SD)
+                            FallbackStrategy.lowerQualityOrHigherThan(Quality.FHD)
+                        ) else QualitySelector.from(
+                            Quality.SD,
+                            FallbackStrategy.higherQualityOrLowerThan(Quality.SD)
                         )
                     )
                     .build()
@@ -206,6 +237,22 @@ class MainActivity : AppCompatActivity() {
         mode = newMode
         updateModeUi()
         bindUseCases()
+    }
+
+    private fun toggleQuality() {
+        if (busy || recording != null) return
+        hd = !hd
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_HD, hd).apply()
+        updateQualityUi()
+        toast(getString(if (hd) R.string.quality_switched_hd else R.string.quality_switched_sd))
+        bindUseCases()
+    }
+
+    private fun updateQualityUi() {
+        qualityChip.text = getString(if (hd) R.string.quality_hd else R.string.quality_sd)
+        qualityChip.setTextColor(
+            ContextCompat.getColor(this, if (hd) R.color.mode_active else R.color.mode_inactive)
+        )
     }
 
     private fun updateModeUi() {
@@ -272,13 +319,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun processPhoto(raw: Bitmap, rotation: Int, snap: Snapshot) {
+        val maxDim = if (hd) 4000 else 1280
+        val jpegQuality = if (hd) 92 else 85
         lifecycleScope.launch {
             try {
                 val (uri, thumb) = withContext(Dispatchers.IO) {
-                    val photo = PhotoSaver.prepare(raw, rotation)
+                    val photo = PhotoSaver.prepare(raw, rotation, maxDim)
                     val map = snap.loc?.let { MapTiles.render(it.latitude, it.longitude, zoom = 16, sizePx = 512) }
                     Stamp.draw(photo, map, snap.loc, snap.place, snap.time)
-                    val savedUri = PhotoSaver.save(this@MainActivity, photo, snap.loc, snap.time)
+                    val savedUri = PhotoSaver.save(this@MainActivity, photo, snap.loc, snap.time, jpegQuality)
                     val small = Bitmap.createScaledBitmap(
                         photo, 200, (200f * photo.height / photo.width).toInt(), true
                     )
