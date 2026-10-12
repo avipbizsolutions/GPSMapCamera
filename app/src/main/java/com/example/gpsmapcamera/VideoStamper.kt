@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.OptIn
+import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.BitmapOverlay
@@ -55,7 +56,7 @@ object VideoStamper {
             val overlay = BitmapOverlay.createStaticBitmapOverlay(overlayBitmap)
             val effects = Effects(
                 ImmutableList.of(),
-                ImmutableList.of(OverlayEffect(ImmutableList.of<TextureOverlay>(overlay))),
+                ImmutableList.of<Effect>(OverlayEffect(ImmutableList.of<TextureOverlay>(overlay))),
             )
             val item = EditedMediaItem.Builder(MediaItem.fromUri(Uri.fromFile(input)))
                 .setEffects(effects)
