@@ -119,6 +119,9 @@ class SplashActivity : AppCompatActivity() {
         }
         prefs.edit().putLong(KEY_LAST_VERSION, versionCode).apply()
 
+        // Send a registration that couldn't be uploaded earlier (e.g. offline).
+        Registration.uploadPendingAsync(this)
+
         ContextCompat.registerReceiver(
             this, installStatusReceiver, IntentFilter(Updater.ACTION_INSTALL_STATUS),
             ContextCompat.RECEIVER_NOT_EXPORTED
@@ -212,7 +215,9 @@ class SplashActivity : AppCompatActivity() {
     private fun goToCamera() {
         if (leaving || isFinishing) return
         leaving = true
-        startActivity(Intent(this, MainActivity::class.java))
+        val next = if (Registration.isRegistered(this)) MainActivity::class.java
+        else RegistrationActivity::class.java
+        startActivity(Intent(this, next))
         @Suppress("DEPRECATION")
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         finish()

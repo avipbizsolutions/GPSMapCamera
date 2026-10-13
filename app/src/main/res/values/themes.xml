@@ -18,6 +18,27 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <style name="RegLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#08295F</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="RegInput">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:background">@drawable/input_background</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:textColor">#111111</item>
+        <item name="android:textColorHint">#8A94A0</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
     <style name="Theme.GPSMapCamera.Splash">
         <item name="android:windowBackground">@drawable/splash_background</item>
         <item name="android:statusBarColor">#08295F</item>

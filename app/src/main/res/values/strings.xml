@@ -10,6 +10,20 @@
     <string name="company_phone" translatable="false">9288076289</string>
     <string name="company_phone2" translatable="false">9939476289</string>
     <string name="loading">Loading…</string>
+    <string name="reg_title">Register your device</string>
+    <string name="reg_subtitle">One-time setup. Takes less than a minute.</string>
+    <string name="reg_name">Your name</string>
+    <string name="reg_name_hint">e.g. Rahul Kumar</string>
+    <string name="reg_company">Company name</string>
+    <string name="reg_company_hint">e.g. Kumar Electricals</string>
+    <string name="reg_mobile">Mobile number</string>
+    <string name="reg_mobile_hint">10-digit mobile number</string>
+    <string name="reg_consent">I agree to receive information about products and services from AVIP Business Solutions LLP on this number.</string>
+    <string name="reg_button">Register &amp; Continue</string>
+    <string name="reg_privacy">Your details are shared only with AVIP Business Solutions LLP.</string>
+    <string name="reg_error_name">Please enter your name</string>
+    <string name="reg_error_company">Please enter your company name</string>
+    <string name="reg_error_mobile">Enter a valid 10-digit mobile number</string>
     <string name="quality_hd">HD</string>
     <string name="quality_sd">SD</string>
     <string name="quality_switched_hd">HD – best quality (photos full size, videos 1080p)</string>
