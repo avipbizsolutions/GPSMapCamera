@@ -139,19 +139,56 @@
             android:textSize="15sp"
             android:textStyle="italic" />
 
-        <TextView
-            android:id="@+id/contactText"
+        <!-- Contact numbers (tap to call) -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="?android:attr/selectableItemBackground"
-            android:drawableStart="@drawable/ic_phone"
-            android:drawablePadding="8dp"
+            android:layout_marginTop="6dp"
             android:gravity="center_vertical"
-            android:padding="6dp"
-            android:text="@string/company_contact"
-            android:textColor="#FFD54F"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginEnd="4dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_phone" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/contact_label"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/phone1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+                android:padding="6dp"
+                android:text="@string/company_phone"
+                android:textColor="#FFD54F"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="|"
+                android:textColor="#99FFFFFF"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/phone2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+                android:padding="6dp"
+                android:text="@string/company_phone2"
+                android:textColor="#FFD54F"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 </FrameLayout>

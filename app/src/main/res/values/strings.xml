@@ -6,8 +6,9 @@
     <string name="developed_by">Developed by</string>
     <string name="company_name">AVIP Business Solutions LLP</string>
     <string name="company_tagline">One stop solution for all your Solar requirements</string>
-    <string name="company_contact">Contact: 9288076289</string>
+    <string name="contact_label">Contact:</string>
     <string name="company_phone" translatable="false">9288076289</string>
+    <string name="company_phone2" translatable="false">9939476289</string>
     <string name="loading">Loading…</string>
     <string name="quality_hd">HD</string>
     <string name="quality_sd">SD</string>

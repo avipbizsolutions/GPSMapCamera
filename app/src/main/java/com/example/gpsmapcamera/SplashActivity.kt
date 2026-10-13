@@ -96,13 +96,15 @@ class SplashActivity : AppCompatActivity() {
             }
         }
 
-        // Tap the number to call.
-        findViewById<View>(R.id.contactText).setOnClickListener {
+        // Tap a number to call it.
+        fun dial(number: String) {
             try {
-                startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + getString(R.string.company_phone))))
+                startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$number")))
             } catch (_: Exception) {
             }
         }
+        findViewById<View>(R.id.phone1).setOnClickListener { dial(getString(R.string.company_phone)) }
+        findViewById<View>(R.id.phone2).setOnClickListener { dial(getString(R.string.company_phone2)) }
 
         val versionName = Updater.currentVersionName(this)
         val versionCode = Updater.currentVersionCode(this)
