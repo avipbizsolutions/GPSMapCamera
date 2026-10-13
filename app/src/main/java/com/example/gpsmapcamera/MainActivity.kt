@@ -592,7 +592,10 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val entry = withContext(Dispatchers.IO) { MediaRepository.latest(this@MainActivity) }
             if (entry == null) {
-                // Nothing found (e.g. all deleted, or no read access yet)
+                // Everything was deleted: show the plain gallery icon again.
+                lastSaved = null
+                thumbnail.setImageResource(R.drawable.ic_gallery)
+                shareButton.isEnabled = false
                 return@launch
             }
             if (entry.uri == lastSaved?.uri) return@launch

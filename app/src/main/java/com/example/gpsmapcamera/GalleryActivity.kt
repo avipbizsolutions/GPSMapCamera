@@ -1,6 +1,10 @@
 package com.example.gpsmapcamera
 
 import android.Manifest
+import android.app.Activity
+import android.provider.MediaStore
+import androidx.activity.result.IntentSenderRequest
+import androidx.appcompat.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -41,6 +45,21 @@ class GalleryActivity : AppCompatActivity() {
     private lateinit var hintText: TextView
     private lateinit var clearButton: TextView
     private lateinit var shareButton: Button
+    private lateinit var deleteButton: Button
+
+    // Counts carried across Android's own delete-permission screen.
+    private var pendingDeleted = 0
+    private var pendingNeedsPermission = 0
+
+    // Android 11+: files from an earlier install need the system's OK to delete.
+    private val deletePermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                finishDelete(pendingDeleted + pendingNeedsPermission, 0)
+            } else {
+                finishDelete(pendingDeleted, pendingNeedsPermission)
+            }
+        }
 
     private val adapter = MediaAdapter()
     private val thumbCache = LruCache<Long, Bitmap>(150)
@@ -66,6 +85,8 @@ class GalleryActivity : AppCompatActivity() {
         hintText = findViewById(R.id.hintText)
         clearButton = findViewById(R.id.clearButton)
         shareButton = findViewById(R.id.shareSelectedButton)
+        deleteButton = findViewById(R.id.deleteSelectedButton)
+        deleteButton.setOnClickListener { confirmDelete() }
 
         grid.layoutManager = GridLayoutManager(this, SPAN)
         grid.adapter = adapter
@@ -103,6 +124,63 @@ class GalleryActivity : AppCompatActivity() {
         shareButton.isEnabled = count > 0
         shareButton.text = if (count == 0) getString(R.string.share) else getString(R.string.share_count, count)
         clearButton.visibility = if (count > 0) View.VISIBLE else View.GONE
+        deleteButton.isEnabled = count > 0
+        deleteButton.text = if (count == 0) getString(R.string.delete) else getString(R.string.delete_count, count)
+    }
+
+    private fun confirmDelete() {
+        val selected = adapter.selectedEntries()
+        if (selected.isEmpty()) return
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.delete_title, selected.size))
+            .setMessage(R.string.delete_message)
+            .setPositiveButton(R.string.delete) { _, _ -> deleteEntries(selected) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun deleteEntries(entries: List<MediaEntry>) {
+        deleteButton.isEnabled = false
+        shareButton.isEnabled = false
+        lifecycleScope.launch {
+            val needsPermission = withContext(Dispatchers.IO) {
+                val blocked = mutableListOf<MediaEntry>()
+                for (e in entries) {
+                    try {
+                        contentResolver.delete(e.uri, null, null)
+                    } catch (_: SecurityException) {
+                        blocked += e // not owned by this install of the app
+                    }
+                }
+                blocked
+            }
+            val deleted = entries.size - needsPermission.size
+            if (needsPermission.isNotEmpty() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                pendingDeleted = deleted
+                pendingNeedsPermission = needsPermission.size
+                try {
+                    val request = MediaStore.createDeleteRequest(contentResolver, needsPermission.map { it.uri })
+                    deletePermissionLauncher.launch(IntentSenderRequest.Builder(request.intentSender).build())
+                    return@launch
+                } catch (_: Exception) {
+                }
+            }
+            finishDelete(deleted, needsPermission.size)
+        }
+    }
+
+    private fun finishDelete(deleted: Int, failed: Int) {
+        val msg = buildString {
+            if (deleted > 0) append(getString(R.string.deleted_count, deleted))
+            if (failed > 0) {
+                if (isNotEmpty()) append(" · ")
+                append(getString(R.string.delete_failed, failed))
+            }
+        }
+        if (msg.isNotEmpty()) Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        thumbCache.evictAll()
+        adapter.clearSelection()
+        load()
     }
 
     private fun shareSelected() {
