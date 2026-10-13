@@ -15,7 +15,8 @@ import java.util.UUID
 object Registration {
 
     /** Apps Script web app URL ("…/exec"). Empty = not connected yet; uploads wait. */
-    private const val ENDPOINT = ""
+    private const val ENDPOINT =
+        "https://script.google.com/macros/s/AKfycbxf5gvphiR18xJpepSKcEjdc5oMonsPkXlotBKgHpxDI2V-iOIl_7k21OILcy9ljKeYdQ/exec"
 
     /** Must match SHARED_KEY in apps-script/Code.gs. */
     private const val SHARED_KEY = "avip-gpscam-reg-7Q2x"
