@@ -35,6 +35,7 @@ class SplashActivity : AppCompatActivity() {
 
     private lateinit var statusText: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var loadingRow: View
     private var leaving = false
     private var pendingRelease: ReleaseInfo? = null
 
@@ -82,6 +83,26 @@ class SplashActivity : AppCompatActivity() {
 
         statusText = findViewById(R.id.statusText)
         progressBar = findViewById(R.id.updateProgress)
+        loadingRow = findViewById(R.id.loadingRow)
+
+        // Animated "Loading." → "Loading.." → "Loading..."
+        val loadingText = findViewById<TextView>(R.id.loadingText)
+        lifecycleScope.launch {
+            var dots = 0
+            while (true) {
+                loadingText.text = "Loading" + ".".repeat(dots + 1)
+                dots = (dots + 1) % 3
+                delay(400)
+            }
+        }
+
+        // Tap the number to call.
+        findViewById<View>(R.id.contactText).setOnClickListener {
+            try {
+                startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + getString(R.string.company_phone))))
+            } catch (_: Exception) {
+            }
+        }
 
         val versionName = Updater.currentVersionName(this)
         val versionCode = Updater.currentVersionCode(this)
@@ -109,7 +130,7 @@ class SplashActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            val minimumShow = async { delay(1600) }
+            val minimumShow = async { delay(3000) }
             val latest = withTimeoutOrNull(5000) { withContext(Dispatchers.IO) { Updater.fetchLatest() } }
 
             if (latest != null && latest.versionCode > versionCode) {
@@ -138,6 +159,7 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private suspend fun downloadAndInstall(release: ReleaseInfo) {
+        loadingRow.visibility = View.GONE
         statusText.text = getString(R.string.updating_to, release.versionName)
         statusText.visibility = View.VISIBLE
         progressBar.progress = 0
@@ -165,6 +187,7 @@ class SplashActivity : AppCompatActivity() {
 
     /** One-time Android setting that lets the app install its own updates. */
     private fun askInstallPermission(release: ReleaseInfo) {
+        loadingRow.visibility = View.GONE
         AlertDialog.Builder(this)
             .setTitle(R.string.auto_update_title)
             .setMessage(getString(R.string.auto_update_message, release.versionName))

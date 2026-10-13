@@ -5,6 +5,10 @@
     <string name="version_label">Version %1$s</string>
     <string name="developed_by">Developed by</string>
     <string name="company_name">AVIP Business Solutions LLP</string>
+    <string name="company_tagline">One stop solution for all your Solar requirements</string>
+    <string name="company_contact">Contact: 9288076289</string>
+    <string name="company_phone" translatable="false">9288076289</string>
+    <string name="loading">Loading…</string>
     <string name="quality_hd">HD</string>
     <string name="quality_sd">SD</string>
     <string name="quality_switched_hd">HD – best quality (photos full size, videos 1080p)</string>
