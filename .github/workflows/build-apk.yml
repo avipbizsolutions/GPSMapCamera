@@ -33,6 +33,8 @@ jobs:
           set -o pipefail
           gradle assembleDebug --console=plain 2>&1 | tee build.log
           cp app/build/outputs/apk/debug/app-debug.apk "AVIP-GPSCam-${VERSION_NAME}.apk"
+          # Fixed name, so .../releases/latest/download/AVIP-GPSCam.apk always gets the newest
+          cp app/build/outputs/apk/debug/app-debug.apk AVIP-GPSCam.apk
 
       - name: Report build errors
         if: failure()
@@ -54,5 +56,7 @@ jobs:
           tag_name: v${{ env.VERSION_NAME }}
           name: AVIP GPSCam ${{ env.VERSION_NAME }}
           body: Automatic build from commit ${{ github.sha }}.
-          files: AVIP-GPSCam-${{ env.VERSION_NAME }}.apk
+          files: |
+            AVIP-GPSCam-${{ env.VERSION_NAME }}.apk
+            AVIP-GPSCam.apk
           make_latest: true
