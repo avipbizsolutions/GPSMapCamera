@@ -7,6 +7,9 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.content.Context
+import android.util.AttributeSet
+import android.view.View
 import android.location.Location
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -34,6 +37,7 @@ object Stamp {
         place: PlaceInfo,
         time: Date,
         heading: Float? = null,
+        recycleMap: Boolean = true,
     ) {
         val c = Canvas(photo)
         val unit = min(photo.width, photo.height).toFloat()
@@ -86,7 +90,7 @@ object Stamp {
             c.clipPath(Path().apply { addRoundRect(dst, corner, corner, Path.Direction.CW) })
             c.drawBitmap(map, null, dst, Paint(Paint.FILTER_BITMAP_FLAG))
             c.restore()
-            map.recycle()
+            if (recycleMap) map.recycle()
         }
 
         c.save()
@@ -114,4 +118,57 @@ object Stamp {
             .setMaxLines(maxLines)
             .setEllipsize(TextUtils.TruncateAt.END)
             .build()
+}
+
+/**
+ * Where the camera image sits inside a view that shows it with FIT_START:
+ * a 4:3 frame (3:4 when upright), aligned to the top-left. Photos and videos
+ * are both 4:3, so this is exactly the area that gets saved.
+ */
+object CameraFrame {
+    fun rect(viewW: Int, viewH: Int): RectF {
+        if (viewW <= 0 || viewH <= 0) return RectF()
+        val ratio = if (viewH >= viewW) 4f / 3f else 3f / 4f // height / width
+        var w = viewW.toFloat()
+        var h = w * ratio
+        if (h > viewH) {
+            h = viewH.toFloat()
+            w = h / ratio
+        }
+        return RectF(0f, 0f, w, h)
+    }
+}
+
+/** Live preview of the GPS stamp, drawn exactly where it will appear in the photo/video. */
+class StampPreviewView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+) : View(context, attrs) {
+
+    private var bitmap: Bitmap? = null
+    private var frame = RectF()
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        frame = CameraFrame.rect(w, h)
+        bitmap?.recycle()
+        bitmap = null
+    }
+
+    fun render(map: Bitmap?, loc: Location?, place: PlaceInfo, time: Date, heading: Float?) {
+        val fw = frame.width().toInt()
+        val fh = frame.height().toInt()
+        if (fw <= 0 || fh <= 0) return
+        val bmp = bitmap?.takeIf { it.width == fw && it.height == fh }
+            ?: Bitmap.createBitmap(fw, fh, Bitmap.Config.ARGB_8888).also {
+                bitmap?.recycle()
+                bitmap = it
+            }
+        bmp.eraseColor(Color.TRANSPARENT)
+        Stamp.draw(bmp, map, loc, place, time, heading, recycleMap = false)
+        invalidate()
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        bitmap?.let { canvas.drawBitmap(it, frame.left, frame.top, null) }
+    }
 }

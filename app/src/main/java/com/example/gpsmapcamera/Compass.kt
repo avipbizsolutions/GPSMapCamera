@@ -160,8 +160,16 @@ class GridOverlayView @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
-        val w = width.toFloat()
-        val h = height.toFloat()
+        // Draw over the saved area only (the camera frame), not the whole screen.
+        val f = CameraFrame.rect(width, height)
+        if (f.isEmpty) return
+        canvas.save()
+        canvas.translate(f.left, f.top)
+        drawGrid(canvas, f.width(), f.height())
+        canvas.restore()
+    }
+
+    private fun drawGrid(canvas: Canvas, w: Float, h: Float) {
         for (i in 1..2) {
             canvas.drawLine(w * i / 3f, 0f, w * i / 3f, h, line)
             canvas.drawLine(0f, h * i / 3f, w, h * i / 3f, line)

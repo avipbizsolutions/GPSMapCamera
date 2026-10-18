@@ -4,16 +4,39 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <androidx.camera.view.PreviewView
-        android:id="@+id/previewView"
+    <!-- Camera area: shows exactly what is saved (4:3), below a thin top bar.
+         The grid, level and live GPS stamp are drawn over the same area. -->
+    <FrameLayout
+        android:id="@+id/cameraFrame"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_marginTop="64dp">
 
-    <!-- Rule-of-thirds grid + level line (touches pass through to the preview) -->
-    <com.example.gpsmapcamera.GridOverlayView
-        android:id="@+id/gridOverlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Rule-of-thirds grid + level line (touches pass through to the preview) -->
+        <com.example.gpsmapcamera.GridOverlayView
+            android:id="@+id/gridOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Live GPS stamp, in its final position -->
+        <com.example.gpsmapcamera.StampPreviewView
+            android:id="@+id/stampPreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Tap-to-focus ring (positioned in code) -->
+        <View
+            android:id="@+id/focusRing"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:background="@drawable/focus_ring"
+            android:visibility="invisible" />
+    </FrameLayout>
 
     <!-- Grid on/off -->
     <ImageButton
@@ -22,20 +45,12 @@
         android:layout_height="44dp"
         android:layout_gravity="top|start"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="10dp"
         android:background="@drawable/round_button_background"
         android:contentDescription="@string/grid_toggle"
         android:padding="10dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_grid" />
-
-    <!-- Tap-to-focus ring (positioned in code) -->
-    <View
-        android:id="@+id/focusRing"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:background="@drawable/focus_ring"
-        android:visibility="invisible" />
 
     <!-- Zoom level shown while pinching -->
     <TextView
@@ -59,7 +74,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:background="@drawable/chip_background"
         android:contentDescription="@string/quality_toggle"
@@ -77,7 +92,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="16dp"
         android:background="@drawable/rec_background"
         android:paddingStart="14dp"
         android:paddingTop="6dp"

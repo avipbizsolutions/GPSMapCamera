@@ -31,6 +31,8 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.core.AspectRatio
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import android.util.Size
@@ -113,6 +115,18 @@ class MainActivity : AppCompatActivity() {
     private var currentLocation: Location? = null
     private var geocodedLocation: Location? = null
     private var placeInfo = PlaceInfo.EMPTY
+
+    // Live GPS stamp on the camera screen
+    private lateinit var stampPreview: StampPreviewView
+    private var previewMap: Bitmap? = null
+    private var previewMapLocation: Location? = null
+    private var previewMapLoading = false
+    private val stampTicker = object : Runnable {
+        override fun run() {
+            stampPreview.render(previewMap, currentLocation, placeInfo, Date(), headingProvider.heading)
+            stampPreview.postDelayed(this, 500)
+        }
+    }
     private var lastSaved: MediaEntry? = null
     private var busy = false
 
@@ -146,6 +160,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         previewView = findViewById(R.id.previewView)
+        // Show the whole 4:3 frame that gets saved, not a cropped view.
+        previewView.scaleType = PreviewView.ScaleType.FIT_START
+        stampPreview = findViewById(R.id.stampPreview)
         infoText = findViewById(R.id.infoText)
         shutterButton = findViewById(R.id.shutterButton)
         shareButton = findViewById(R.id.shareButton)
@@ -203,10 +220,13 @@ class MainActivity : AppCompatActivity() {
         headingProvider.start()
         previewView.post { updateScreenRotation() }
         if (gridOverlay.visibility == View.VISIBLE) tiltProvider.start()
+        stampPreview.removeCallbacks(stampTicker)
+        stampPreview.post(stampTicker)
     }
 
     override fun onPause() {
         super.onPause()
+        stampPreview.removeCallbacks(stampTicker)
         headingProvider.stop()
         tiltProvider.stop()
     }
@@ -272,7 +292,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun bindUseCases() {
         val provider = cameraProvider ?: return
-        val preview = Preview.Builder().build().also {
+        // Photos and videos are both 4:3, so the preview shows exactly what is saved.
+        val ratio43 = ResolutionSelector.Builder()
+            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+            .build()
+        val preview = Preview.Builder().setResolutionSelector(ratio43).build().also {
             it.setSurfaceProvider(previewView.surfaceProvider)
         }
         // Keep the user's zoom level across mode / quality switches.
@@ -286,10 +310,12 @@ class MainActivity : AppCompatActivity() {
             if (mode == Mode.PHOTO) {
                 val builder = ImageCapture.Builder()
                     .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                    .setResolutionSelector(ratio43)
                 if (!hd) {
                     // SD: ask the camera for a small frame, which is faster too.
                     builder.setResolutionSelector(
                         ResolutionSelector.Builder()
+                            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
                             .setResolutionStrategy(
                                 ResolutionStrategy(
                                     Size(1280, 960),
@@ -304,6 +330,7 @@ class MainActivity : AppCompatActivity() {
                 imageCapture = capture
             } else {
                 val recorder = Recorder.Builder()
+                    .setAspectRatio(AspectRatio.RATIO_4_3)
                     .setQualitySelector(
                         if (hd) QualitySelector.from(
                             Quality.FHD,
@@ -655,6 +682,7 @@ class MainActivity : AppCompatActivity() {
             loc.latitude.toFloat(), loc.longitude.toFloat(), loc.altitude.toFloat(), System.currentTimeMillis()
         ).declination
         updateInfoText()
+        refreshPreviewMap(loc)
 
         val g = geocodedLocation
         if (g == null || g.distanceTo(loc) > 30f) {
@@ -671,8 +699,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Map thumbnail for the live stamp; refreshed after moving about 30 m. */
+    private fun refreshPreviewMap(loc: Location) {
+        val last = previewMapLocation
+        if (previewMapLoading || (previewMap != null && last != null && last.distanceTo(loc) < 30f)) return
+        previewMapLoading = true
+        lifecycleScope.launch {
+            val bmp = withContext(Dispatchers.IO) {
+                MapTiles.render(loc.latitude, loc.longitude, zoom = 16, sizePx = 512)
+            }
+            previewMapLoading = false
+            if (bmp != null) {
+                val old = previewMap
+                previewMap = bmp
+                previewMapLocation = loc
+                old?.recycle()
+            }
+        }
+    }
+
     private fun updateInfoText() {
         val loc = currentLocation ?: return
+        // The live stamp now shows the address and coordinates on the preview.
+        infoText.visibility = View.GONE
         infoText.text = buildString {
             if (placeInfo.address.isNotBlank()) appendLine(placeInfo.address)
             append(Stamp.formatLatLon(loc))
