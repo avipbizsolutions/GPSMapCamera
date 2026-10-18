@@ -135,8 +135,8 @@ class SplashActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            val minimumShow = async { delay(5000) }
-            val latest = withTimeoutOrNull(5000) { withContext(Dispatchers.IO) { Updater.fetchLatest() } }
+            val minimumShow = async { delay(3000) }
+            val latest = withTimeoutOrNull(3000) { withContext(Dispatchers.IO) { Updater.fetchLatest() } }
 
             if (latest != null && latest.versionCode > versionCode) {
                 pendingRelease = latest
