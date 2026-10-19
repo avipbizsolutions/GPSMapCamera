@@ -201,6 +201,7 @@ class MainActivity : AppCompatActivity() {
         photoTab.setOnClickListener { setMode(Mode.PHOTO) }
         videoTab.setOnClickListener { setMode(Mode.VIDEO) }
         updateModeUi()
+        useWarmedUpLocation()
 
         if (requiredPermissions.all { hasPermission(it) }) {
             startCamera()
@@ -661,12 +662,26 @@ class MainActivity : AppCompatActivity() {
         if (currentLocation == null) infoText.text = getString(R.string.waiting_gps)
         for (p in providers) {
             try {
-                locationManager.getLastKnownLocation(p)?.let { onNewLocation(it) }
+                locationManager.getLastKnownLocation(p)?.takeIf { LocationWarmup.isFresh(it) }?.let { onNewLocation(it) }
                 locationManager.requestLocationUpdates(p, 2000L, 1f, locationListener, mainLooper)
             } catch (_: SecurityException) {
                 // e.g. GPS provider when only coarse location was granted
             }
         }
+    }
+
+    /** Take the location, address and map found while the launch screen was showing. */
+    private fun useWarmedUpLocation() {
+        LocationWarmup.place?.let {
+            placeInfo = it
+            geocodedLocation = LocationWarmup.placeFor
+        }
+        LocationWarmup.takeMap()?.let { (bmp, at) ->
+            previewMap = bmp
+            previewMapLocation = at
+        }
+        LocationWarmup.location?.let { onNewLocation(it) }
+        LocationWarmup.stop()
     }
 
     private fun onNewLocation(loc: Location) {

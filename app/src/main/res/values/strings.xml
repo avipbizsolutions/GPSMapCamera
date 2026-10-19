@@ -10,6 +10,8 @@
     <string name="company_phone" translatable="false">9288076289</string>
     <string name="company_phone2" translatable="false">9939476289</string>
     <string name="loading">Loading…</string>
+    <string name="gps_finding">📍 Finding your location…</string>
+    <string name="gps_found">📍 Location found ✓</string>
     <string name="reg_title">Register your device</string>
     <string name="reg_subtitle">One-time setup. Takes less than a minute.</string>
     <string name="reg_name">Your name</string>

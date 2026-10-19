@@ -85,6 +85,11 @@ class SplashActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.updateProgress)
         loadingRow = findViewById(R.id.loadingRow)
 
+        // Start finding the GPS location now, so the camera opens with it ready.
+        LocationWarmup.start(this)
+        val gpsText = findViewById<TextView>(R.id.gpsStatusText)
+        if (LocationWarmup.hasPermission(this)) gpsText.visibility = View.VISIBLE
+
         // Animated "Loading." → "Loading.." → "Loading..."
         val loadingText = findViewById<TextView>(R.id.loadingText)
         lifecycleScope.launch {
@@ -92,6 +97,9 @@ class SplashActivity : AppCompatActivity() {
             while (true) {
                 loadingText.text = "Loading" + ".".repeat(dots + 1)
                 dots = (dots + 1) % 3
+                gpsText.text = getString(
+                    if (LocationWarmup.location != null) R.string.gps_found else R.string.gps_finding
+                )
                 delay(400)
             }
         }
