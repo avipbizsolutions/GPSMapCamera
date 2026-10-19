@@ -12,6 +12,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.view.OrientationEventListener
 import android.view.Surface
 import android.view.View
 import android.widget.ImageButton
@@ -103,6 +104,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var qualityChip: TextView
     private var cameraProvider: ProcessCameraProvider? = null
     private var camera: Camera? = null
+
+    // How the phone is physically held (the screen itself stays upright).
+    private var deviceRotation = Surface.ROTATION_0
+    private var orientationListener: OrientationEventListener? = null
     private var lastZoom: Float? = null
     private lateinit var zoomChips: List<Pair<TextView, Float>>
     private lateinit var zoomLabel: TextView
@@ -163,6 +168,18 @@ class MainActivity : AppCompatActivity() {
         // Show the whole 4:3 frame that gets saved, not a cropped view.
         previewView.scaleType = PreviewView.ScaleType.FIT_START
         stampPreview = findViewById(R.id.stampPreview)
+        orientationListener = object : OrientationEventListener(this) {
+            override fun onOrientationChanged(degrees: Int) {
+                if (degrees == ORIENTATION_UNKNOWN) return
+                val r = when (degrees) {
+                    in 45 until 135 -> Surface.ROTATION_270
+                    in 135 until 225 -> Surface.ROTATION_180
+                    in 225 until 315 -> Surface.ROTATION_90
+                    else -> Surface.ROTATION_0
+                }
+                if (r != deviceRotation) applyDeviceRotation(r)
+            }
+        }
         infoText = findViewById(R.id.infoText)
         shutterButton = findViewById(R.id.shutterButton)
         shareButton = findViewById(R.id.shareButton)
@@ -223,10 +240,12 @@ class MainActivity : AppCompatActivity() {
         if (gridOverlay.visibility == View.VISIBLE) tiltProvider.start()
         stampPreview.removeCallbacks(stampTicker)
         stampPreview.post(stampTicker)
+        orientationListener?.takeIf { it.canDetectOrientation() }?.enable()
     }
 
     override fun onPause() {
         super.onPause()
+        orientationListener?.disable()
         stampPreview.removeCallbacks(stampTicker)
         headingProvider.stop()
         tiltProvider.stop()
@@ -327,6 +346,7 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
                 val capture = builder.build()
+                capture.targetRotation = deviceRotation
                 camera = provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
                 imageCapture = capture
             } else {
@@ -343,6 +363,7 @@ class MainActivity : AppCompatActivity() {
                     )
                     .build()
                 val capture = VideoCapture.withOutput(recorder)
+                capture.targetRotation = deviceRotation
                 camera = provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
                 videoCapture = capture
             }
@@ -560,6 +581,7 @@ class MainActivity : AppCompatActivity() {
                     recTimer.visibility = View.GONE
                     modeBar.visibility = View.VISIBLE
                     updateModeUi()
+                    applyDeviceRotation(deviceRotation) // catch up if the phone turned while recording
                     if (file.exists() && file.length() > 0) {
                         processVideo(file, snap)
                     } else {
@@ -668,6 +690,32 @@ class MainActivity : AppCompatActivity() {
                 // e.g. GPS provider when only coarse location was granted
             }
         }
+    }
+
+    /**
+     * The phone was turned. Photos/videos are saved in that orientation, and the
+     * live stamp and buttons turn to stay upright for the user.
+     */
+    private fun applyDeviceRotation(r: Int) {
+        deviceRotation = r
+        imageCapture?.targetRotation = r
+        // A video keeps the orientation it started with.
+        if (recording != null) return
+        videoCapture?.targetRotation = r
+
+        val deg = when (r) {
+            Surface.ROTATION_90 -> 90
+            Surface.ROTATION_180 -> 180
+            Surface.ROTATION_270 -> 270
+            else -> 0
+        }
+        stampPreview.rotationDeg = deg
+        stampPreview.render(previewMap, currentLocation, placeInfo, Date(), headingProvider.heading)
+
+        val iconAngle = if (deg == 270) -90f else deg.toFloat()
+        val icons = listOf<View>(gridButton, qualityChip, thumbnail, shareButton, zoomLabel) +
+            zoomChips.map { it.first }
+        icons.forEach { it.animate().rotation(iconAngle).setDuration(250).start() }
     }
 
     /** Take the location, address and map found while the launch screen was showing. */

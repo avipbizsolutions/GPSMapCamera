@@ -6,6 +6,7 @@ Take a photo or record a video and get a stamp burned into it: mini map with a p
 
 - **HD / SD** chip (top-right): HD = full-size photos and 1080p video; SD = 1280px photos and 480p video for small files.
 - **Live GPS stamp:** the camera screen shows the whole 4:3 frame that gets saved, with the GPS stamp drawn live in its final position, so subjects can be framed clear of it. Photos and videos are both 4:3.
+- **Landscape:** hold the phone sideways and photos/videos are saved in landscape with the GPS stamp along their bottom; the live stamp and buttons turn to match (works even with auto-rotate off).
 - **Zoom:** pinch on the preview, or tap the .5x / 1x / 2x / 5x buttons (works while recording too). Tap the preview to focus.
 - **Grid & level:** the grid button (top-left) toggles rule-of-thirds lines and a level line in the centre that turns green when the phone is straight. Photos get a north-arrow symbol (top-right) and a "Facing NE 45°" line in the stamp.
 - **PHOTO / VIDEO** switch above the shutter. In video mode, tap the red button to start, tap again to stop; the stamp is then added to the video (takes a few seconds).

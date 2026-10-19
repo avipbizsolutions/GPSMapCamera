@@ -148,6 +148,13 @@ class StampPreviewView @JvmOverloads constructor(
     private var bitmap: Bitmap? = null
     private var frame = RectF()
 
+    /**
+     * How far the saved picture is turned relative to the screen (0, 90, 180, 270).
+     * When the phone is held sideways the photo is landscape, so the stamp is
+     * drawn for a landscape picture and turned to line up with it.
+     */
+    var rotationDeg = 0
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         frame = CameraFrame.rect(w, h)
         bitmap?.recycle()
@@ -155,8 +162,9 @@ class StampPreviewView @JvmOverloads constructor(
     }
 
     fun render(map: Bitmap?, loc: Location?, place: PlaceInfo, time: Date, heading: Float?) {
-        val fw = frame.width().toInt()
-        val fh = frame.height().toInt()
+        val sideways = rotationDeg == 90 || rotationDeg == 270
+        val fw = (if (sideways) frame.height() else frame.width()).toInt()
+        val fh = (if (sideways) frame.width() else frame.height()).toInt()
         if (fw <= 0 || fh <= 0) return
         val bmp = bitmap?.takeIf { it.width == fw && it.height == fh }
             ?: Bitmap.createBitmap(fw, fh, Bitmap.Config.ARGB_8888).also {
@@ -169,6 +177,11 @@ class StampPreviewView @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
-        bitmap?.let { canvas.drawBitmap(it, frame.left, frame.top, null) }
+        val bmp = bitmap ?: return
+        canvas.save()
+        canvas.translate(frame.centerX(), frame.centerY())
+        canvas.rotate(rotationDeg.toFloat())
+        canvas.drawBitmap(bmp, -bmp.width / 2f, -bmp.height / 2f, null)
+        canvas.restore()
     }
 }
