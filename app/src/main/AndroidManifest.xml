@@ -59,6 +59,10 @@
         </receiver>
 
         <activity
+            android:name=".MediaViewerActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".GalleryActivity"
             android:exported="false"
             android:label="@string/gallery_title" />

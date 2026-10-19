@@ -21,6 +21,7 @@
         android:src="@android:drawable/ic_media_play"
         android:visibility="gone" />
 
+    <!-- Green border on selected items -->
     <View
         android:id="@+id/selectedOverlay"
         android:layout_width="match_parent"
@@ -28,13 +29,13 @@
         android:background="@drawable/selected_overlay"
         android:visibility="gone" />
 
+    <!-- Small select circle, top-right (padding gives a bigger touch area) -->
     <ImageView
-        android:id="@+id/checkIcon"
-        android:layout_width="26dp"
-        android:layout_height="26dp"
+        android:id="@+id/selectBox"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_gravity="top|end"
-        android:layout_margin="6dp"
-        android:contentDescription="@null"
-        android:src="@drawable/ic_check"
-        android:visibility="gone" />
+        android:contentDescription="@string/select_item"
+        android:padding="8dp"
+        android:src="@drawable/ic_select_off" />
 </FrameLayout>

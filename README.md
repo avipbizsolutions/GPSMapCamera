@@ -10,7 +10,7 @@ Take a photo or record a video and get a stamp burned into it: mini map with a p
 - **Zoom:** pinch on the preview, or tap the .5x / 1x / 2x / 5x buttons (works while recording too). Tap the preview to focus.
 - **Grid & level:** the grid button (top-left) toggles rule-of-thirds lines and a level line in the centre that turns green when the phone is straight. Photos get a north-arrow symbol (top-right) and a "Facing NE 45°" line in the stamp.
 - **PHOTO / VIDEO** switch above the shutter. In video mode, tap the red button to start, tap again to stop; the stamp is then added to the video (takes a few seconds).
-- **Bottom-left thumbnail** opens the app's gallery: tap photos/videos to select, then **Share** to send them all at once or **Delete** to remove them. Long-press an item to view it.
+- **Bottom-left thumbnail** opens the app's gallery. Tap a photo or video to open it full screen and swipe through them; tap the small circle (top-right of each item, or in the viewer) to select. **Share** / **Delete** act on the selected items (or, in the viewer, on the one on screen if none are selected).
 - **Share icon (right)** quickly shares the last photo or video.
 
 ## Automatic updates
