@@ -50,7 +50,7 @@ object Registration {
             .put("consent", consent)
             .put("device", "${Build.MANUFACTURER} ${Build.MODEL}")
             .put("android", Build.VERSION.RELEASE)
-            .put("appVersion", Updater.currentVersionName(context))
+            .put("appVersion", AppVersion.name(context))
             .put("installId", installId(context))
         prefs(context).edit()
             .putBoolean(KEY_DONE, true)
@@ -70,7 +70,7 @@ object Registration {
             try {
                 val data = JSONObject(p.getString(KEY_DATA, "{}") ?: "{}")
                     .put("key", SHARED_KEY)
-                    .put("appVersion", Updater.currentVersionName(app))
+                    .put("appVersion", AppVersion.name(app))
                 if (post(data.toString())) p.edit().putBoolean(KEY_UPLOADED, true).apply()
             } catch (_: Exception) {
             } finally {

@@ -146,8 +146,8 @@ class MainActivity : AppCompatActivity() {
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
                 add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                add(Manifest.permission.POST_NOTIFICATIONS) // "app updated" notice
+            if (BuildConfig.SIDELOAD && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                add(Manifest.permission.POST_NOTIFICATIONS) // "app updated" notice (link version)
             }
         }.toTypedArray()
 
@@ -163,6 +163,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        SystemBars.apply(this)
 
         previewView = findViewById(R.id.previewView)
         // Show the whole 4:3 frame that gets saved, not a cropped view.

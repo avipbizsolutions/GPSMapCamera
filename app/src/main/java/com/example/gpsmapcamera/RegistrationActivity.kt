@@ -14,11 +14,19 @@ class RegistrationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registration)
+        SystemBars.apply(this)
 
         val name = findViewById<EditText>(R.id.nameInput)
         val company = findViewById<EditText>(R.id.companyInput)
         val mobile = findViewById<EditText>(R.id.mobileInput)
         val consent = findViewById<CheckBox>(R.id.consentCheck)
+
+        findViewById<android.view.View>(R.id.privacyLink).setOnClickListener {
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(getString(R.string.privacy_url))))
+            } catch (_: Exception) {
+            }
+        }
 
         findViewById<Button>(R.id.registerButton).setOnClickListener {
             val n = name.text.toString().trim().replace(Regex("\\s+"), " ")

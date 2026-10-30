@@ -34,7 +34,7 @@ class UpdatedReceiver : BroadcastReceiver() {
             Intent(context, SplashActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             PendingIntent.FLAG_IMMUTABLE
         )
-        val version = Updater.currentVersionName(context)
+        val version = AppVersion.name(context)
         val notification = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_update)
             .setContentTitle(context.getString(R.string.updated_title))

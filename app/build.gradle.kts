@@ -5,32 +5,62 @@ plugins {
 
 android {
     namespace = "com.example.gpsmapcamera"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.gpsmapcamera"
         minSdk = 26
-        targetSdk = 34
-        // GitHub Actions sets VERSION_CODE for every build, so each release is newer
-        // than the last and the app can update itself.
+        targetSdk = 36 // Google Play requires Android 16 (API 36) for new apps
+        // GitHub Actions sets VERSION_CODE for every build, so each build is newer than the last.
         val buildNumber = (System.getenv("VERSION_CODE") ?: "4").toInt()
         versionCode = buildNumber
         versionName = "2.0.$buildNumber"
     }
 
-    // Same signing key on every build, so new versions install over old ones.
+    buildFeatures {
+        buildConfig = true
+    }
+
+    // Two versions of the same app:
+    //  - github: shared by download link, updates itself from GitHub Releases
+    //  - play:   Google Play Store, own app ID, updated by Play (no self-updater)
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("github") {
+            dimension = "distribution"
+            buildConfigField("boolean", "SIDELOAD", "true")
+        }
+        create("play") {
+            dimension = "distribution"
+            applicationId = "in.avipsolar.gpscam"
+            buildConfigField("boolean", "SIDELOAD", "false")
+        }
+    }
+
     signingConfigs {
+        // Same key on every build, so new link versions install over old ones.
         getByName("debug") {
             storeFile = file("debug.keystore")
             storePassword = "android"
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        // Google Play upload key: supplied by GitHub Actions secrets, never stored in the repo.
+        val uploadStore = System.getenv("UPLOAD_KEYSTORE_FILE")
+        if (uploadStore != null && file(uploadStore).exists()) {
+            create("upload") {
+                storeFile = file(uploadStore)
+                storePassword = System.getenv("UPLOAD_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("UPLOAD_KEY_ALIAS")
+                keyPassword = System.getenv("UPLOAD_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("upload")
         }
     }
 
@@ -44,7 +74,7 @@ android {
 }
 
 dependencies {
-    val camerax = "1.3.4"
+    val camerax = "1.4.2"
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.activity:activity-ktx:1.9.1")

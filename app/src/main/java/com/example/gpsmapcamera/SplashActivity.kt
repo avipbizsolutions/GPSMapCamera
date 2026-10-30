@@ -80,6 +80,7 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+        SystemBars.apply(this)
 
         statusText = findViewById(R.id.statusText)
         progressBar = findViewById(R.id.updateProgress)
@@ -114,8 +115,8 @@ class SplashActivity : AppCompatActivity() {
         findViewById<View>(R.id.phone1).setOnClickListener { dial(getString(R.string.company_phone)) }
         findViewById<View>(R.id.phone2).setOnClickListener { dial(getString(R.string.company_phone2)) }
 
-        val versionName = Updater.currentVersionName(this)
-        val versionCode = Updater.currentVersionCode(this)
+        val versionName = AppVersion.name(this)
+        val versionCode = AppVersion.code(this)
         findViewById<TextView>(R.id.versionText).text = getString(R.string.version_label, versionName)
 
         // Tell the user once after an update.

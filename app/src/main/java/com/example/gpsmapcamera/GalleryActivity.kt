@@ -52,7 +52,13 @@ class GalleryActivity : AppCompatActivity() {
 
     private val readPermissions: Array<String>
         get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            arrayOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO)
+            // Android 13+ shows the app its own photos without any permission.
+            // The Play version asks for nothing (Play photo/video policy).
+            if (BuildConfig.SIDELOAD) {
+                arrayOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO)
+            } else {
+                emptyArray()
+            }
         } else {
             arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
@@ -64,6 +70,7 @@ class GalleryActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_gallery)
+        SystemBars.apply(this)
         if (savedInstanceState == null) GallerySelection.ids.clear()
 
         grid = findViewById(R.id.grid)

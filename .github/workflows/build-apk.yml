@@ -20,7 +20,7 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.7"
+          gradle-version: "8.11.1"
 
       - name: Set version
         run: |
@@ -28,13 +28,40 @@ jobs:
           echo "VERSION_CODE=$code" >> "$GITHUB_ENV"
           echo "VERSION_NAME=2.0.$code" >> "$GITHUB_ENV"
 
-      - name: Build debug APK
+      # Optional: if the Play upload key is stored in repository secrets,
+      # the Play build is signed automatically. Without it, it is built unsigned.
+      - name: Prepare Play upload key
+        env:
+          KEYSTORE_B64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            {
+              echo "UPLOAD_KEYSTORE_FILE=$RUNNER_TEMP/upload.jks"
+              echo "UPLOAD_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
+              echo "UPLOAD_KEY_ALIAS=$KEY_ALIAS"
+              echo "UPLOAD_KEY_PASSWORD=$KEY_PASSWORD"
+              echo "PLAY_SIGNED=true"
+            } >> "$GITHUB_ENV"
+          fi
+
+      - name: Build link APK and Play bundle
         run: |
           set -o pipefail
-          gradle assembleDebug --console=plain 2>&1 | tee build.log
-          cp app/build/outputs/apk/debug/app-debug.apk "AVIP-GPSCam-${VERSION_NAME}.apk"
+          gradle assembleGithubDebug bundlePlayRelease assemblePlayRelease --console=plain 2>&1 | tee build.log
+          # Link version (self-updating)
+          cp app/build/outputs/apk/github/debug/app-github-debug.apk "AVIP-GPSCam-${VERSION_NAME}.apk"
           # Fixed name, so .../releases/latest/download/AVIP-GPSCam.apk always gets the newest
-          cp app/build/outputs/apk/debug/app-debug.apk AVIP-GPSCam.apk
+          cp app/build/outputs/apk/github/debug/app-github-debug.apk AVIP-GPSCam.apk
+          # Play Store bundle
+          if [ "$PLAY_SIGNED" = "true" ]; then
+            cp app/build/outputs/bundle/playRelease/app-play-release.aab AVIP-GPSCam-play.aab
+          else
+            cp app/build/outputs/bundle/playRelease/app-play-release.aab AVIP-GPSCam-play-unsigned.aab
+          fi
 
       - name: Report build errors
         if: failure()
@@ -43,12 +70,24 @@ jobs:
           msg=$(sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g' errors.txt)
           echo "::error title=Build errors::${msg}"
 
+      # Google Play: native libraries must be 16 KB aligned (Android 15+ devices).
+      - name: Check 16 KB page alignment (Play)
+        run: |
+          apk=$(ls app/build/outputs/apk/play/release/*.apk | head -1)
+          bt=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          libs=$(unzip -l "$apk" | grep '\.so$' | awk '{print $4}' | tr '\n' ' ')
+          if "$bt/zipalign" -c -P 16 -v 4 "$apk" > align.log 2>&1; then result="PASS"; else result="FAIL"; fi
+          echo "::notice title=16KB alignment::$result (build-tools $(basename $bt)). Native libs: ${libs:-none}"
+          grep -i "16\|fail\|BAD" align.log | head -20 || true
+
       - uses: actions/upload-artifact@v4
         with:
-          name: AVIP-GPSCam-${{ env.VERSION_NAME }}-apk
-          path: AVIP-GPSCam-${{ env.VERSION_NAME }}.apk
+          name: AVIP-GPSCam-${{ env.VERSION_NAME }}
+          path: |
+            AVIP-GPSCam-${{ env.VERSION_NAME }}.apk
+            AVIP-GPSCam-play*.aab
 
-      # Phones check this release on launch and update themselves.
+      # Phones with the link version check this release on launch and update themselves.
       - name: Publish release
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
@@ -59,4 +98,5 @@ jobs:
           files: |
             AVIP-GPSCam-${{ env.VERSION_NAME }}.apk
             AVIP-GPSCam.apk
+            AVIP-GPSCam-play*.aab
           make_latest: true

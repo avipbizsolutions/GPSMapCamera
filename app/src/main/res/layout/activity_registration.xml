@@ -115,5 +115,15 @@
             android:text="@string/reg_privacy"
             android:textColor="#B3FFFFFF"
             android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/privacyLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text="@string/privacy_policy"
+            android:textColor="#FFD54F"
+            android:textSize="13sp"
+            android:textStyle="bold" />
     </LinearLayout>
 </ScrollView>
