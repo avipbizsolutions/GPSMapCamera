@@ -54,14 +54,14 @@ class SplashActivity : AppCompatActivity() {
                         } catch (_: Exception) {
                         }
                     }
-                    goToCamera()
+                    goToNext()
                 }
                 PackageInstaller.STATUS_SUCCESS -> {
                     // Android restarts the app process with the new version.
                 }
                 else -> {
                     toast(getString(R.string.update_failed))
-                    goToCamera()
+                    goToNext()
                 }
             }
         }
@@ -73,7 +73,7 @@ class SplashActivity : AppCompatActivity() {
             if (release != null && Updater.canInstall(this)) {
                 lifecycleScope.launch { downloadAndInstall(release) }
             } else {
-                goToCamera()
+                goToNext()
             }
         }
 
@@ -160,7 +160,7 @@ class SplashActivity : AppCompatActivity() {
                 }
             }
             minimumShow.await()
-            goToCamera()
+            goToNext()
         }
     }
 
@@ -186,7 +186,7 @@ class SplashActivity : AppCompatActivity() {
         }
         if (apk == null) {
             toast(getString(R.string.update_failed))
-            goToCamera()
+            goToNext()
             return
         }
         statusText.text = getString(R.string.installing_update)
@@ -195,7 +195,7 @@ class SplashActivity : AppCompatActivity() {
             // Result arrives in installStatusReceiver.
         } catch (_: Exception) {
             toast(getString(R.string.update_failed))
-            goToCamera()
+            goToNext()
         }
     }
 
@@ -216,15 +216,15 @@ class SplashActivity : AppCompatActivity() {
             }
             .setNegativeButton(R.string.later) { _, _ ->
                 prefs.edit().putLong(KEY_DECLINED_VERSION, release.versionCode).apply()
-                goToCamera()
+                goToNext()
             }
             .show()
     }
 
-    private fun goToCamera() {
+    private fun goToNext() {
         if (leaving || isFinishing) return
         leaving = true
-        val next = if (Registration.isRegistered(this)) MainActivity::class.java
+        val next = if (Registration.isRegistered(this)) HomeActivity::class.java
         else RegistrationActivity::class.java
         startActivity(Intent(this, next))
         @Suppress("DEPRECATION")

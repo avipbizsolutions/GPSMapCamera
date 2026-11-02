@@ -26,7 +26,7 @@ jobs:
         run: |
           code=$((100 + GITHUB_RUN_NUMBER))
           echo "VERSION_CODE=$code" >> "$GITHUB_ENV"
-          echo "VERSION_NAME=2.0.$code" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=3.0.$code" >> "$GITHUB_ENV"
 
       # Optional: if the Play upload key is stored in repository secrets,
       # the Play build is signed automatically. Without it, it is built unsigned.
@@ -53,14 +53,16 @@ jobs:
           set -o pipefail
           gradle assembleGithubDebug bundlePlayRelease assemblePlayRelease --console=plain 2>&1 | tee build.log
           # Link version (self-updating)
-          cp app/build/outputs/apk/github/debug/app-github-debug.apk "AVIP-GPSCam-${VERSION_NAME}.apk"
-          # Fixed name, so .../releases/latest/download/AVIP-GPSCam.apk always gets the newest
+          cp app/build/outputs/apk/github/debug/app-github-debug.apk "AVIP-Tools-${VERSION_NAME}.apk"
+          # Fixed names, so .../releases/latest/download/AVIP-Tools.apk always gets the newest.
+          # AVIP-GPSCam.apk keeps the old shared link working.
+          cp app/build/outputs/apk/github/debug/app-github-debug.apk AVIP-Tools.apk
           cp app/build/outputs/apk/github/debug/app-github-debug.apk AVIP-GPSCam.apk
           # Play Store bundle
           if [ "$PLAY_SIGNED" = "true" ]; then
-            cp app/build/outputs/bundle/playRelease/app-play-release.aab AVIP-GPSCam-play.aab
+            cp app/build/outputs/bundle/playRelease/app-play-release.aab AVIP-Tools-play.aab
           else
-            cp app/build/outputs/bundle/playRelease/app-play-release.aab AVIP-GPSCam-play-unsigned.aab
+            cp app/build/outputs/bundle/playRelease/app-play-release.aab AVIP-Tools-play-unsigned.aab
           fi
 
       - name: Report build errors
@@ -82,10 +84,10 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: AVIP-GPSCam-${{ env.VERSION_NAME }}
+          name: AVIP-Tools-${{ env.VERSION_NAME }}
           path: |
-            AVIP-GPSCam-${{ env.VERSION_NAME }}.apk
-            AVIP-GPSCam-play*.aab
+            AVIP-Tools-${{ env.VERSION_NAME }}.apk
+            AVIP-Tools-play*.aab
 
       # Phones with the link version check this release on launch and update themselves.
       - name: Publish release
@@ -93,10 +95,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION_NAME }}
-          name: AVIP GPSCam ${{ env.VERSION_NAME }}
+          name: AVIP Tools ${{ env.VERSION_NAME }}
           body: Automatic build from commit ${{ github.sha }}.
           files: |
-            AVIP-GPSCam-${{ env.VERSION_NAME }}.apk
+            AVIP-Tools-${{ env.VERSION_NAME }}.apk
+            AVIP-Tools.apk
             AVIP-GPSCam.apk
-            AVIP-GPSCam-play*.aab
+            AVIP-Tools-play*.aab
           make_latest: true

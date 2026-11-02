@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">AVIP GPSCam</string>
-    <string name="tagline">GPS Photos &amp; Videos · Fast</string>
+    <string name="app_name">AVIP Tools</string>
+    <string name="tagline">GPS Camera · Tilt · Scanners</string>
     <string name="version_label">Version %1$s</string>
     <string name="developed_by">Developed by</string>
     <string name="company_name">AVIP Business Solutions LLP</string>
@@ -9,6 +9,78 @@
     <string name="contact_label">Contact:</string>
     <string name="company_phone" translatable="false">9288076289</string>
     <string name="company_phone2" translatable="false">9939476289</string>
+    <string name="home_subtitle">Solar field tools · Free · No ads</string>
+    <string name="tool_camera">GPS Camera</string>
+    <string name="tool_camera_sub">Photos &amp; videos with map, address &amp; time</string>
+    <string name="tool_tilt">Tilt Meter</string>
+    <string name="tool_tilt_sub">Roof &amp; panel angle, level</string>
+    <string name="tool_docs">Doc Scanner</string>
+    <string name="tool_docs_sub">Multi-page PDF</string>
+    <string name="tool_serials">Serial Scanner</string>
+    <string name="tool_serials_sub">Barcodes &amp; panel serial numbers</string>
+    <string name="tool_photos">My Photos &amp; Videos</string>
+    <string name="tool_photos_sub">View, share or delete your GPS photos</string>
+    <string name="home_call_title">Need solar? Call AVIP Solar</string>
+    <string name="home_call_numbers">9288076289 | 9939476289</string>
+    <string name="home_version">AVIP Tools %1$s · AVIP Business Solutions LLP</string>
+    <string name="tilt_instructions">Lay the phone flat on the roof or panel. To see which way it faces, point the top of the phone down the slope.</string>
+    <string name="tilt_no_sensor">No tilt sensor on this phone</string>
+    <string name="tilt_lay_flat">Lay the phone flat on the surface</string>
+    <string name="tilt_level">Level ✓</string>
+    <string name="tilt_measuring">Surface angle</string>
+    <string name="tilt_facing">Top of phone points: %1$s</string>
+    <string name="tilt_hold">Hold reading</string>
+    <string name="tilt_release">Release</string>
+    <string name="tilt_zero">Set zero</string>
+    <string name="tilt_zero_reset">Reset zero</string>
+    <string name="tilt_south">South</string>
+    <string name="tilt_north">North</string>
+    <string name="tilt_recommend">Best fixed panel tilt here: about %1$d°, facing %2$s
+(equal to your latitude, %3$s°)</string>
+    <string name="tilt_recommend_bihar">Best fixed panel tilt in Bihar: about 25°–27°, facing South
+(turn on location for your exact value)</string>
+    <string name="docs_scan_new">Scan new document</string>
+    <string name="docs_hint">Scan many pages into one PDF · auto-crop &amp; clean-up · saved in Documents/AVIP Tools</string>
+    <string name="docs_saved_title">Saved documents</string>
+    <string name="docs_empty">No documents yet.
+Tap “Scan new document” to start.</string>
+    <string name="docs_name_title">Name this PDF (%1$d pages)</string>
+    <string name="docs_save">Save</string>
+    <string name="docs_saved">PDF saved in Documents/AVIP Tools</string>
+    <string name="docs_save_failed">Could not save the PDF</string>
+    <string name="docs_delete_title">Delete “%1$s”?</string>
+    <string name="docs_delete_failed">Could not delete this file</string>
+    <string name="docs_unavailable">The document scanner needs Google Play services. Please update Google Play services and try again.</string>
+    <string name="serial_new_list">+ New list</string>
+    <string name="serial_lists_hint">Make one list per site or customer, then scan panels and inverters into it. Long-press a list to delete it.</string>
+    <string name="serial_lists_empty">No lists yet.
+Tap “+ New list” to start scanning.</string>
+    <string name="serial_list_hint">Customer or site name</string>
+    <string name="serial_start">Start scanning</string>
+    <string name="serial_list_info">%1$d serials · %2$s</string>
+    <string name="serial_delete_list">Delete “%1$s”?</string>
+    <string name="serial_delete_list_msg">Its %1$d serial numbers will be deleted from this phone.</string>
+    <string name="serial_mode_barcode">BARCODE / QR</string>
+    <string name="serial_mode_text">TEXT</string>
+    <string name="serial_hint_barcode">Point at the barcode or QR on the label – new codes are added automatically.</string>
+    <string name="serial_hint_text">Point at the printed serial number, then tap it below to add it.</string>
+    <string name="serial_add_chip">+ %1$s</string>
+    <string name="serial_added">✓ Added %1$s</string>
+    <string name="serial_already">Already in list: %1$s</string>
+    <string name="serial_duplicate">Already in list: %1$s</string>
+    <string name="serial_count">%1$d scanned</string>
+    <string name="serial_torch">Torch</string>
+    <string name="serial_type">Type</string>
+    <string name="serial_copy_all">Copy all</string>
+    <string name="serial_copy">Copy</string>
+    <string name="serial_copied">Copied</string>
+    <string name="serial_manual_title">Type a serial number</string>
+    <string name="serial_manual_hint">Serial number</string>
+    <string name="serial_add">Add</string>
+    <string name="serial_nothing">Nothing scanned yet</string>
+    <string name="serial_share_as">Share list as</string>
+    <string name="serial_share_csv">Excel file (CSV)</string>
+    <string name="serial_share_text">Text message</string>
     <string name="loading">Loading…</string>
     <string name="gps_finding">📍 Finding your location…</string>
     <string name="gps_found">📍 Location found ✓</string>
@@ -36,11 +108,11 @@
     <string name="updating_to">Updating to version %1$s…</string>
     <string name="installing_update">Installing update…</string>
     <string name="update_failed">Update could not be installed – will try again next time.</string>
-    <string name="updated_title">AVIP GPSCam updated</string>
+    <string name="updated_title">AVIP Tools updated</string>
     <string name="updated_text">Updated to the latest version %1$s</string>
     <string name="updates_channel">App updates</string>
     <string name="auto_update_title">Automatic updates</string>
-    <string name="auto_update_message">Version %1$s is available. To keep AVIP GPSCam updated automatically, allow it to install its own updates on the next screen. You only need to do this once.</string>
+    <string name="auto_update_message">Version %1$s is available. To keep AVIP Tools updated automatically, allow it to install its own updates on the next screen. You only need to do this once.</string>
     <string name="allow">Allow</string>
     <string name="later">Later</string>
     <string name="grid_toggle">Show or hide grid lines and level</string>

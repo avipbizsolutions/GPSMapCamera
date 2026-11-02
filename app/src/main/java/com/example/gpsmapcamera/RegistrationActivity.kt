@@ -50,7 +50,7 @@ class RegistrationActivity : AppCompatActivity() {
 
             Registration.save(this, n, c, m, consent.isChecked)
             Registration.uploadPendingAsync(this)
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, HomeActivity::class.java))
             finish()
         }
 

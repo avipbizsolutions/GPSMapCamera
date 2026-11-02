@@ -14,7 +14,7 @@ android {
         // GitHub Actions sets VERSION_CODE for every build, so each build is newer than the last.
         val buildNumber = (System.getenv("VERSION_CODE") ?: "4").toInt()
         versionCode = buildNumber
-        versionName = "2.0.$buildNumber"
+        versionName = "3.0.$buildNumber"
     }
 
     buildFeatures {
@@ -32,7 +32,7 @@ android {
         }
         create("play") {
             dimension = "distribution"
-            applicationId = "in.avipsolar.gpscam"
+            applicationId = "in.avipsolar.tools"
             buildConfigField("boolean", "SIDELOAD", "false")
         }
     }
@@ -91,5 +91,9 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.viewpager2:viewpager2:1.1.0")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
+    // Scanning (Google ML Kit through Google Play services: free, on-device, keeps the app small)
+    implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 }
