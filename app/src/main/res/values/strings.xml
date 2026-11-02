@@ -24,9 +24,9 @@
     <string name="godown_label">AVIP Godown</string>
     <string name="godown_directions">Get Directions</string>
     <!-- Godown details: fill these in; the godown section appears once the address is set -->
-    <string name="godown_address" translatable="false"></string>
-    <string name="godown_lat" translatable="false"></string>
-    <string name="godown_lng" translatable="false"></string>
+    <string name="godown_address" translatable="false">AIIMS Road, New Nahar Lane, Chirora, Patna, Bihar – 801109</string>
+    <string name="godown_lat" translatable="false">25.5201314</string>
+    <string name="godown_lng" translatable="false">84.9917706</string>
     <string name="home_version">AVIP Tools %1$s · AVIP Business Solutions LLP</string>
     <string name="tilt_instructions">Lay the phone flat on the roof or panel. To see which way it faces, point the top of the phone down the slope.</string>
     <string name="tilt_no_sensor">No tilt sensor on this phone</string>
