@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <cache-path name="exports" path="exports/" />
+    <files-path name="serial_photos" path="serial_photos/" />
     <!-- Android 9 and older: scanned PDFs in Documents/AVIP Tools -->
     <external-path name="docs" path="Documents/AVIP Tools/" />
 </paths>

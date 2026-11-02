@@ -33,6 +33,17 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
+        <ImageButton
+            android:id="@+id/serialPhotosButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/round_button_background"
+            android:contentDescription="@string/serial_photos_title"
+            android:padding="10dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_gallery" />
+
         <TextView
             android:id="@+id/serialCount"
             android:layout_width="wrap_content"

@@ -136,7 +136,10 @@ class SerialScanActivity : AppCompatActivity() {
         }
         findViewById<View>(R.id.addManualButton).setOnClickListener { askManual() }
         findViewById<View>(R.id.copyAllButton).setOnClickListener { copyAll() }
-        findViewById<View>(R.id.shareListButton).setOnClickListener { askShare() }
+        findViewById<View>(R.id.shareListButton).setOnClickListener { SerialShare.ask(this, listId) }
+        findViewById<View>(R.id.serialPhotosButton).setOnClickListener {
+            startActivity(Intent(this, SerialPhotosActivity::class.java).putExtra(SerialPhotosActivity.EXTRA_LIST, listId))
+        }
 
         // Tap to focus on the label.
         previewView.setOnTouchListener { v, e ->
@@ -362,10 +365,14 @@ class SerialScanActivity : AppCompatActivity() {
             .setPositiveButton(R.string.serial_add_selected) { _, _ ->
                 var added = 0
                 var last = ""
-                for (r in rows) {
+                val chosen = rows.mapNotNull { r ->
                     val v = r.edit.text.toString().trim().uppercase()
-                    if (!r.check.isChecked || v.isEmpty()) continue
-                    if (SerialStore.add(this, listId, v, r.type)) { added++; last = v }
+                    if (r.check.isChecked && v.isNotEmpty() && !SerialStore.contains(this, listId, v)) v to r.type else null
+                }
+                // Keep the label photo with the serials read from it, for cross-checking later.
+                val photo = if (chosen.isEmpty()) "" else SerialStore.savePhoto(this, listId, bitmap)
+                for ((v, type) in chosen) {
+                    if (SerialStore.add(this, listId, v, type, photo)) { added++; last = v }
                 }
                 if (added > 0) {
                     tone?.startTone(ToneGenerator.TONE_PROP_BEEP, 120)
@@ -460,12 +467,17 @@ class SerialScanActivity : AppCompatActivity() {
     private fun itemOptions(item: SerialItem) {
         AlertDialog.Builder(this)
             .setTitle(item.value)
-            .setItems(arrayOf(getString(R.string.serial_copy), getString(R.string.delete))) { _, which ->
-                if (which == 0) {
-                    copy(item.value)
-                } else {
-                    SerialStore.remove(this, listId, item.value)
-                    refresh()
+            .setItems(
+                if (item.photo.isEmpty()) arrayOf(getString(R.string.serial_copy), getString(R.string.delete))
+                else arrayOf(getString(R.string.serial_copy), getString(R.string.delete), getString(R.string.serial_photo_open))
+            ) { _, which ->
+                when (which) {
+                    0 -> copy(item.value)
+                    1 -> {
+                        SerialStore.remove(this, listId, item.value)
+                        refresh()
+                    }
+                    else -> openPhoto(item.photo)
                 }
             }
             .show()
@@ -482,49 +494,24 @@ class SerialScanActivity : AppCompatActivity() {
         copy(list.items.joinToString("\n") { it.value })
     }
 
-    private fun askShare() {
-        val list = SerialStore.get(this, listId) ?: return
-        if (list.items.isEmpty()) {
-            Toast.makeText(this, R.string.serial_nothing, Toast.LENGTH_SHORT).show()
-            return
-        }
-        AlertDialog.Builder(this)
-            .setTitle(R.string.serial_share_as)
-            .setItems(arrayOf(getString(R.string.serial_share_csv), getString(R.string.serial_share_text))) { _, which ->
-                if (which == 0) shareCsv(list) else shareText(list)
-            }
-            .show()
-    }
-
-    private fun shareCsv(list: SerialList) {
+    private fun openPhoto(photo: String) {
         try {
-            val dir = File(cacheDir, "exports").apply { mkdirs() }
-            val safe = list.name.replace(Regex("[^A-Za-z0-9 _-]"), "_").trim().ifEmpty { "serials" }
-            val file = File(dir, "$safe serials.csv")
-            file.writeText("﻿" + SerialStore.toCsv(list)) // BOM so Excel reads it correctly
-            val uri = FileProvider.getUriForFile(this, "$packageName.files", file)
-            val send = Intent(Intent.ACTION_SEND).apply {
-                type = "text/csv"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, "${list.name} – serial numbers")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(Intent.createChooser(send, getString(R.string.share)))
-        } catch (e: Exception) {
-            Toast.makeText(this, e.message ?: "Error", Toast.LENGTH_SHORT).show()
+            val uri = FileProvider.getUriForFile(this, "$packageName.files", SerialStore.photoFile(this, listId, photo))
+            startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, "image/jpeg")
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
+        } catch (_: Exception) {
+            Toast.makeText(this, R.string.no_viewer, Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun shareText(list: SerialList) {
-        val send = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, SerialStore.toText(list))
-            putExtra(Intent.EXTRA_SUBJECT, "${list.name} – serial numbers")
-        }
-        startActivity(Intent.createChooser(send, getString(R.string.share)))
+    private val thumbs = HashMap<String, Bitmap?>()
+
+    private fun thumb(photo: String): Bitmap? = thumbs.getOrPut(photo) {
+        SerialShare.decode(SerialStore.photoFile(this, listId, photo), 160)
     }
 
     private class ItemHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val photo: ImageView = view.findViewById(R.id.itemPhoto)
         val index: TextView = view.findViewById(R.id.itemIndex)
         val value: TextView = view.findViewById(R.id.itemValue)
         val type: TextView = view.findViewById(R.id.itemType)
@@ -549,6 +536,10 @@ class SerialScanActivity : AppCompatActivity() {
             holder.index.text = (items.size - position).toString()
             holder.value.text = item.value
             holder.type.text = item.type
+            val bmp = if (item.photo.isEmpty()) null else thumb(item.photo)
+            holder.photo.visibility = if (bmp == null) View.GONE else View.VISIBLE
+            holder.photo.setImageBitmap(bmp)
+            holder.photo.setOnClickListener { openPhoto(item.photo) }
             holder.itemView.setOnClickListener { itemOptions(item) }
         }
     }
