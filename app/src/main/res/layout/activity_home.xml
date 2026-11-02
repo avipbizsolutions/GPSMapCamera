@@ -183,31 +183,33 @@
             android:id="@+id/callCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="16dp"
             android:background="@drawable/call_card"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="14dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="12dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/home_call_title"
                 android:textColor="#08295F"
-                android:textSize="18sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
                 android:text="@string/company_tagline"
                 android:textColor="#CC08295F"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -222,67 +224,44 @@
                     android:text="@string/company_phone2" />
             </LinearLayout>
 
-            <!-- Godown (shown once the address is filled in) -->
+            <!-- Godown: address with a Directions button beside it -->
             <LinearLayout
                 android:id="@+id/godownBlock"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:orientation="vertical"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:visibility="gone">
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#3308295F" />
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_stat_update"
+                    android:tint="#C62828" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/godownAddress"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:layout_marginTop="1dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_stat_update"
-                        android:tint="#C62828" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/godown_label"
-                            android:textColor="#08295F"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/godownAddress"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:textColor="#08295F"
-                            android:textSize="14sp" />
-                    </LinearLayout>
-                </LinearLayout>
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:textColor="#08295F"
+                    android:textSize="13sp" />
 
                 <TextView
                     android:id="@+id/godownDirections"
                     style="@style/CallChip"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
                     android:layout_weight="0"
-                    android:layout_marginTop="10dp"
                     android:drawableStart="@drawable/ic_directions"
-                    android:text="@string/godown_directions" />
+                    android:paddingStart="10dp"
+                    android:paddingEnd="12dp"
+                    android:text="@string/godown_directions"
+                    android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>
 

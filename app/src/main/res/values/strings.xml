@@ -22,9 +22,9 @@
     <string name="tool_photos_sub">View, share or delete your GPS photos</string>
     <string name="home_call_title">Need Solar Materials?</string>
     <string name="godown_label">AVIP Godown</string>
-    <string name="godown_directions">Get Directions</string>
+    <string name="godown_directions">Directions</string>
     <!-- Godown details: fill these in; the godown section appears once the address is set -->
-    <string name="godown_address" translatable="false">AIIMS Road, New Nahar Lane, Chirora, Patna, Bihar – 801109</string>
+    <string name="godown_address" translatable="false"><b>Godown:</b> AIIMS–Naubatpur New Nahar Road, Chirora, Patna – 801109</string>
     <string name="godown_lat" translatable="false">25.5201314</string>
     <string name="godown_lng" translatable="false">84.9917706</string>
     <string name="home_version">AVIP Tools %1$s · AVIP Business Solutions LLP</string>

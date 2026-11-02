@@ -29,8 +29,8 @@ class HomeActivity : AppCompatActivity() {
         val address = getString(R.string.godown_address)
         if (address.isNotBlank()) {
             findViewById<View>(R.id.godownBlock).visibility = View.VISIBLE
-            findViewById<TextView>(R.id.godownAddress).text = address
-            findViewById<View>(R.id.godownDirections).setOnClickListener { openGodownDirections(address) }
+            findViewById<TextView>(R.id.godownAddress).text = getText(R.string.godown_address) // keeps the bold label
+            findViewById<View>(R.id.godownDirections).setOnClickListener { openGodownDirections(address.removePrefix("Godown: ")) }
         }
         findViewById<TextView>(R.id.homeVersion).text =
             getString(R.string.home_version, AppVersion.name(this))
