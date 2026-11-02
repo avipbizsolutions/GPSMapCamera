@@ -32,6 +32,9 @@ class HomeActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.godownAddress).text = getText(R.string.godown_address) // keeps the bold label
             findViewById<View>(R.id.godownDirections).setOnClickListener { openGodownDirections(address.removePrefix("Godown: ")) }
         }
+        // Distributor card: tap to call for a quote.
+        findViewById<View>(R.id.brandsCard).setOnClickListener { dial(getString(R.string.company_phone)) }
+
         findViewById<TextView>(R.id.homeVersion).text =
             getString(R.string.home_version, AppVersion.name(this))
     }

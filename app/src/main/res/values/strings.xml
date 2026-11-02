@@ -21,6 +21,12 @@
     <string name="tool_photos">My Photos &amp; Videos</string>
     <string name="tool_photos_sub">View, share or delete your GPS photos</string>
     <string name="home_call_title">Need Solar Materials?</string>
+    <string name="brands_title">Authorised Distributor</string>
+    <string name="brands_subtitle">Genuine products available at AVIP Godown · tap to enquire</string>
+    <string name="brand_microtek" translatable="false">Microtek Solar</string>
+    <string name="brand_finolex" translatable="false">Finolex Wires</string>
+    <string name="brand_apollo" translatable="false">APL Apollo</string>
+    <string name="brand_sunrack" translatable="false">Sunrack</string>
     <string name="godown_label">AVIP Godown</string>
     <string name="godown_directions">Directions</string>
     <!-- Godown details: fill these in; the godown section appears once the address is set -->
