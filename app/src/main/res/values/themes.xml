@@ -105,13 +105,12 @@
 
     <style name="BrandTile">
         <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_height">56dp</item>
         <item name="android:layout_weight">1</item>
         <item name="android:background">@drawable/brand_tile</item>
-        <item name="android:gravity">center</item>
-        <item name="android:textColor">#08295F</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:adjustViewBounds">false</item>
     </style>
 
     <style name="Theme.GPSMapCamera.Splash">

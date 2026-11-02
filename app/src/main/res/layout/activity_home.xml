@@ -299,16 +299,18 @@
                 android:layout_marginTop="8dp"
                 android:orientation="horizontal">
 
-                <TextView
+                <ImageView
                     android:id="@+id/brandMicrotek"
                     style="@style/BrandTile"
                     android:layout_marginEnd="6dp"
-                    android:text="@string/brand_microtek" />
+                    android:contentDescription="@string/brand_microtek"
+                    android:src="@drawable/logo_microtek" />
 
-                <TextView
+                <ImageView
                     android:id="@+id/brandFinolex"
                     style="@style/BrandTile"
-                    android:text="@string/brand_finolex" />
+                    android:contentDescription="@string/brand_finolex"
+                    android:src="@drawable/logo_finolex" />
             </LinearLayout>
 
             <LinearLayout
@@ -317,16 +319,18 @@
                 android:layout_marginTop="6dp"
                 android:orientation="horizontal">
 
-                <TextView
+                <ImageView
                     android:id="@+id/brandApollo"
                     style="@style/BrandTile"
                     android:layout_marginEnd="6dp"
-                    android:text="@string/brand_apollo" />
+                    android:contentDescription="@string/brand_apollo"
+                    android:src="@drawable/logo_apollo" />
 
-                <TextView
+                <ImageView
                     android:id="@+id/brandSunrack"
                     style="@style/BrandTile"
-                    android:text="@string/brand_sunrack" />
+                    android:contentDescription="@string/brand_sunrack"
+                    android:src="@drawable/logo_sunrack" />
             </LinearLayout>
         </LinearLayout>
 
