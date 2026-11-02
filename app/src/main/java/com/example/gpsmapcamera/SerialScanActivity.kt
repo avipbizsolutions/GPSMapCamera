@@ -1,6 +1,19 @@
 package com.example.gpsmapcamera
 
 import android.Manifest
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.net.Uri
+import android.view.Gravity
+import android.view.MotionEvent
+import android.widget.CheckBox
+import android.widget.ImageView
+import android.widget.ScrollView
+import androidx.camera.core.FocusMeteringAction
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.exifinterface.media.ExifInterface
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -10,7 +23,6 @@ import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.HapticFeedbackConstants
@@ -28,7 +40,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -47,43 +58,39 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
- * Scans serial numbers into one list:
- *  - Barcode / QR mode adds every new code it sees automatically.
- *  - Text mode reads printed serial numbers; tap one to add it.
+ * Scans serial numbers into one list by photo: the user takes a photo of the
+ * label (or picks one from the gallery); barcodes, QR codes and printed serial
+ * numbers are read from it, and the user ticks / edits which ones to add.
  */
 class SerialScanActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_LIST = "list_id"
-        private val SERIAL_TOKEN = Regex("[A-Z0-9][A-Z0-9/\\-]{6,29}")
+        private val SERIAL_TOKEN = Regex("[A-Z0-9][A-Z0-9/\\-]{5,39}")
+        private val LABEL = Regex("\\b(S\\s*/\\s*N|SR\\.?\\s*NO|SL\\.?\\s*NO|SERIAL\\s*(NO|NUMBER|NUM)?|S\\.\\s*NO|SNO|SN)(\\s*[.:#\\-]+\\s*|\\s+)")
+        private const val MAX_SIDE = 2400
     }
 
-    private enum class Mode { BARCODE, TEXT }
+    /** One number found in the photo. */
+    private data class Found(val value: String, val type: String, val score: Int)
 
     private lateinit var listId: String
     private lateinit var previewView: PreviewView
     private lateinit var countText: TextView
     private lateinit var lastText: TextView
-    private lateinit var barcodeTab: TextView
-    private lateinit var textTab: TextView
-    private lateinit var candidateRow: LinearLayout
-    private lateinit var candidateHint: TextView
     private lateinit var torchButton: ImageButton
+    private lateinit var readingOverlay: View
     private lateinit var itemsView: RecyclerView
 
     private val adapter = ItemAdapter()
     private val barcodeScanner = BarcodeScanning.getClient()
     private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-    private lateinit var analysisExecutor: ExecutorService
+    private lateinit var worker: ExecutorService
     private var camera: Camera? = null
+    private var imageCapture: ImageCapture? = null
     private var torchOn = false
     private var tone: ToneGenerator? = null
-
-    @Volatile private var mode = Mode.BARCODE
-    private var lastAddedValue = ""
-    private var lastAddedAt = 0L
-    private var lastCandidateUpdate = 0L
-    private var currentCandidates: List<String> = emptyList()
+    private var busy = false
 
     private val cameraPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -91,6 +98,12 @@ class SerialScanActivity : AppCompatActivity() {
             else Toast.makeText(this, R.string.camera_permission_needed, Toast.LENGTH_LONG).show()
         }
 
+    private val pickPhoto =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null) readFromUri(uri)
+        }
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_serial_scan)
@@ -100,13 +113,11 @@ class SerialScanActivity : AppCompatActivity() {
         val list = SerialStore.get(this, listId) ?: run { finish(); return }
 
         previewView = findViewById(R.id.serialPreview)
+        previewView.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
         countText = findViewById(R.id.serialCount)
         lastText = findViewById(R.id.serialLast)
-        barcodeTab = findViewById(R.id.modeBarcode)
-        textTab = findViewById(R.id.modeText)
-        candidateRow = findViewById(R.id.candidateRow)
-        candidateHint = findViewById(R.id.candidateHint)
         torchButton = findViewById(R.id.torchButton)
+        readingOverlay = findViewById(R.id.readingOverlay)
         itemsView = findViewById(R.id.serialItems)
 
         findViewById<TextView>(R.id.serialTitle).text = list.name
@@ -114,20 +125,31 @@ class SerialScanActivity : AppCompatActivity() {
         itemsView.layoutManager = LinearLayoutManager(this)
         itemsView.adapter = adapter
 
-        barcodeTab.setOnClickListener { setMode(Mode.BARCODE) }
-        textTab.setOnClickListener { setMode(Mode.TEXT) }
         torchButton.setOnClickListener {
             torchOn = !torchOn
             camera?.cameraControl?.enableTorch(torchOn)
             torchButton.isSelected = torchOn
         }
+        findViewById<View>(R.id.captureSerialButton).setOnClickListener { capture() }
+        findViewById<View>(R.id.pickPhotoButton).setOnClickListener {
+            if (!busy) runCatching { pickPhoto.launch("image/*") }
+        }
         findViewById<View>(R.id.addManualButton).setOnClickListener { askManual() }
         findViewById<View>(R.id.copyAllButton).setOnClickListener { copyAll() }
         findViewById<View>(R.id.shareListButton).setOnClickListener { askShare() }
 
-        analysisExecutor = Executors.newSingleThreadExecutor()
+        // Tap to focus on the label.
+        previewView.setOnTouchListener { v, e ->
+            if (e.action == MotionEvent.ACTION_UP) {
+                val point = previewView.meteringPointFactory.createPoint(e.x, e.y)
+                camera?.cameraControl?.startFocusAndMetering(FocusMeteringAction.Builder(point).build())
+                v.performClick()
+            }
+            true
+        }
+
+        worker = Executors.newSingleThreadExecutor()
         tone = runCatching { ToneGenerator(AudioManager.STREAM_NOTIFICATION, 70) }.getOrNull()
-        setMode(Mode.BARCODE)
         refresh()
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
@@ -139,21 +161,10 @@ class SerialScanActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (::analysisExecutor.isInitialized) analysisExecutor.shutdown()
+        if (::worker.isInitialized) worker.shutdown()
         barcodeScanner.close()
         textRecognizer.close()
         tone?.release()
-    }
-
-    private fun setMode(m: Mode) {
-        mode = m
-        val active = ContextCompat.getColor(this, R.color.mode_active)
-        val inactive = ContextCompat.getColor(this, R.color.mode_inactive)
-        barcodeTab.setTextColor(if (m == Mode.BARCODE) active else inactive)
-        textTab.setTextColor(if (m == Mode.TEXT) active else inactive)
-        candidateRow.removeAllViews()
-        currentCandidates = emptyList()
-        candidateHint.text = getString(if (m == Mode.BARCODE) R.string.serial_hint_barcode else R.string.serial_hint_text)
     }
 
     private fun startCamera() {
@@ -161,13 +172,13 @@ class SerialScanActivity : AppCompatActivity() {
         future.addListener({
             val provider = future.get()
             val preview = Preview.Builder().build().also { it.setSurfaceProvider(previewView.surfaceProvider) }
-            val analysis = ImageAnalysis.Builder()
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            val capture = ImageCapture.Builder()
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                 .build()
-            analysis.setAnalyzer(analysisExecutor) { analyze(it) }
             try {
                 provider.unbindAll()
-                camera = provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis)
+                camera = provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
+                imageCapture = capture
                 camera?.cameraControl?.enableTorch(torchOn)
             } catch (e: Exception) {
                 Toast.makeText(this, getString(R.string.camera_failed, e.message ?: ""), Toast.LENGTH_SHORT).show()
@@ -175,76 +186,219 @@ class SerialScanActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    @SuppressLint("UnsafeOptInUsageError")
-    private fun analyze(proxy: ImageProxy) {
-        val media = proxy.image ?: run { proxy.close(); return }
-        val input = InputImage.fromMediaImage(media, proxy.imageInfo.rotationDegrees)
-        if (mode == Mode.BARCODE) {
-            barcodeScanner.process(input)
-                .addOnSuccessListener { codes ->
-                    codes.mapNotNull { c -> c.rawValue?.trim()?.takeIf { it.isNotEmpty() }?.let { it to formatName(c.format) } }
-                        .forEach { (value, type) -> onDetected(value, type) }
+    /** Takes a photo and reads it. */
+    private fun capture() {
+        val ic = imageCapture ?: return
+        if (busy) return
+        setBusy(true)
+        ic.takePicture(worker, object : ImageCapture.OnImageCapturedCallback() {
+            override fun onCaptureSuccess(image: ImageProxy) {
+                val bitmap = try {
+                    rotateAndScale(image.toBitmap(), image.imageInfo.rotationDegrees)
+                } catch (_: Exception) {
+                    null
+                } finally {
+                    image.close()
                 }
-                .addOnCompleteListener { proxy.close() }
-        } else {
-            textRecognizer.process(input)
-                .addOnSuccessListener { result ->
-                    val found = LinkedHashSet<String>()
-                    for (block in result.textBlocks) for (line in block.lines) {
-                        line.text.uppercase().split(' ', ':', ',', ';', '|', '=').forEach { raw ->
-                            val t = raw.trim().trim('.', '-', '/')
-                            if (SERIAL_TOKEN.matches(t) && t.count { it.isDigit() } >= 4) found += t
+                runOnUiThread {
+                    if (bitmap == null) failed() else readBitmap(bitmap)
+                }
+            }
+
+            override fun onError(exception: ImageCaptureException) {
+                runOnUiThread {
+                    setBusy(false)
+                    Toast.makeText(this@SerialScanActivity,
+                        getString(R.string.capture_failed, exception.message ?: ""), Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+    }
+
+    private fun readFromUri(uri: Uri) {
+        if (busy) return
+        setBusy(true)
+        worker.execute {
+            val bitmap = runCatching { loadBitmap(uri) }.getOrNull()
+            runOnUiThread { if (bitmap == null) failed() else readBitmap(bitmap) }
+        }
+    }
+
+    private fun failed() {
+        setBusy(false)
+        Toast.makeText(this, R.string.serial_photo_failed, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun setBusy(b: Boolean) {
+        busy = b
+        readingOverlay.visibility = if (b) View.VISIBLE else View.GONE
+    }
+
+    /** Runs barcode and text reading on the photo, then asks what to add. */
+    private fun readBitmap(bitmap: Bitmap) {
+        val input = InputImage.fromBitmap(bitmap, 0)
+        val found = LinkedHashMap<String, Found>()
+        fun put(f: Found) {
+            val old = found[f.value]
+            if (old == null || f.score > old.score) found[f.value] = f
+        }
+        barcodeScanner.process(input)
+            .addOnSuccessListener { codes ->
+                for (c in codes) {
+                    val raw = c.rawValue?.trim()?.takeIf { it.isNotEmpty() } ?: continue
+                    val type = getString(if (c.format == Barcode.FORMAT_QR_CODE) R.string.serial_type_qr else R.string.serial_type_barcode)
+                    if (raw.length <= 40 && !raw.contains('\n')) {
+                        put(Found(raw, type, 1000))
+                    } else {
+                        // Long QR content: offer the serial-like parts inside it.
+                        serialTokens(raw).forEach { put(Found(it.first, type, 900 + it.second)) }
+                    }
+                }
+            }
+            .addOnCompleteListener {
+                textRecognizer.process(input)
+                    .addOnSuccessListener { result ->
+                        for (block in result.textBlocks) for (line in block.lines) {
+                            serialTokens(line.text).forEach {
+                                put(Found(it.first, getString(R.string.serial_type_text), it.second))
+                            }
                         }
                     }
-                    showCandidates(found.take(6))
-                }
-                .addOnCompleteListener { proxy.close() }
-        }
-    }
-
-    private fun formatName(format: Int): String = when (format) {
-        Barcode.FORMAT_QR_CODE -> "QR"
-        Barcode.FORMAT_CODE_128 -> "Code 128"
-        Barcode.FORMAT_CODE_39 -> "Code 39"
-        Barcode.FORMAT_CODE_93 -> "Code 93"
-        Barcode.FORMAT_DATA_MATRIX -> "Data Matrix"
-        Barcode.FORMAT_EAN_13 -> "EAN-13"
-        Barcode.FORMAT_EAN_8 -> "EAN-8"
-        Barcode.FORMAT_UPC_A -> "UPC-A"
-        Barcode.FORMAT_PDF417 -> "PDF417"
-        Barcode.FORMAT_ITF -> "ITF"
-        else -> "Barcode"
-    }
-
-    /** Barcode mode: add new codes automatically (each code once). */
-    private fun onDetected(value: String, type: String) {
-        val now = SystemClock.elapsedRealtime()
-        if (value == lastAddedValue && now - lastAddedAt < 2500) return
-        lastAddedValue = value
-        lastAddedAt = now
-        addSerial(value, type, quietIfDuplicate = true)
-    }
-
-    private fun showCandidates(list: List<String>) {
-        val now = SystemClock.elapsedRealtime()
-        if (now - lastCandidateUpdate < 600 || list == currentCandidates || mode != Mode.TEXT) return
-        lastCandidateUpdate = now
-        currentCandidates = list
-        candidateRow.removeAllViews()
-        val pad = (12 * resources.displayMetrics.density).toInt()
-        for (value in list) {
-            val chip = TextView(this).apply {
-                text = getString(R.string.serial_add_chip, value)
-                setTextColor(0xFF08295F.toInt())
-                textSize = 15f
-                setBackgroundResource(R.drawable.register_button)
-                setPadding(pad, pad / 2, pad, pad / 2)
-                setOnClickListener { addSerial(value, "Text", quietIfDuplicate = false) }
+                    .addOnCompleteListener {
+                        setBusy(false)
+                        showFound(bitmap, found.values.sortedByDescending { it.score }.take(8))
+                    }
             }
-            candidateRow.addView(chip, LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { marginEnd = pad / 2 })
+    }
+
+    /** Serial-number-like words in one line of text, with a score (higher = more likely). */
+    private fun serialTokens(text: String): List<Pair<String, Int>> {
+        val out = ArrayList<Pair<String, Int>>()
+        for (rawLine in text.uppercase().split('\n')) {
+            val labelled = LABEL.containsMatchIn(rawLine)
+            val line = LABEL.replace(rawLine, " ")
+            val words = line.split(' ', ':', ',', ';', '|', '=', '(', ')', '[', ']').map { it.trim().trim('.', '-', '/') }
+            for (w in words) {
+                if (!SERIAL_TOKEN.matches(w)) continue
+                val digits = w.count { it.isDigit() }
+                if (digits < 4 || w.toSet().size < 3) continue
+                out += w to (100 + w.length + digits + if (labelled) 200 else 0)
+            }
+            // OCR sometimes splits one serial into pieces: try the line without spaces.
+            val joined = line.replace(" ", "").trim('.', '-', '/', ':')
+            if (words.count { it.isNotEmpty() } in 2..4 && SERIAL_TOKEN.matches(joined) &&
+                joined.count { it.isDigit() } >= 6 && out.none { it.first == joined }) {
+                out += joined to (60 + joined.length + if (labelled) 200 else 0)
+            }
         }
+        return out
+    }
+
+    /** Shows the photo with the numbers found; the user ticks / edits and adds them. */
+    private fun showFound(bitmap: Bitmap, items: List<Found>) {
+        val dp = resources.displayMetrics.density
+        val existing = SerialStore.get(this, listId)?.items?.map { it.value }?.toSet() ?: emptySet()
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding((20 * dp).toInt(), (8 * dp).toInt(), (20 * dp).toInt(), 0)
+        }
+        content.addView(ImageView(this).apply {
+            setImageBitmap(bitmap)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            adjustViewBounds = true
+            maxHeight = (180 * dp).toInt()
+            setBackgroundColor(0xFF000000.toInt())
+        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (180 * dp).toInt()))
+        content.addView(TextView(this).apply {
+            text = getString(if (items.isEmpty()) R.string.serial_found_none else R.string.serial_found_hint)
+            textSize = 13f
+            setPadding(0, (10 * dp).toInt(), 0, (4 * dp).toInt())
+        })
+
+        class Row(val check: CheckBox, val edit: EditText, val type: String)
+        val rows = ArrayList<Row>()
+        val entries = if (items.isEmpty()) listOf(Found("", getString(R.string.serial_type), 0)) else items
+        entries.forEachIndexed { i, f ->
+            val inList = f.value in existing
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            val check = CheckBox(this).apply {
+                isChecked = !inList && (items.isEmpty() || f.score >= 900 || i == 0)
+            }
+            val edit = EditText(this).apply {
+                setText(f.value)
+                hint = getString(R.string.serial_manual_hint)
+                setSingleLine()
+                textSize = 16f
+                typeface = android.graphics.Typeface.MONOSPACE
+                inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                    android.text.InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS or
+                    android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                addTextChangedListener(object : android.text.TextWatcher {
+                    override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                    override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                    override fun afterTextChanged(s: android.text.Editable?) {
+                        if (hasFocus()) check.isChecked = !s.isNullOrBlank()
+                    }
+                })
+            }
+            row.addView(check)
+            row.addView(edit, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            row.addView(TextView(this).apply {
+                text = if (inList) getString(R.string.serial_in_list) else f.type
+                textSize = 11f
+                setPadding((6 * dp).toInt(), 0, 0, 0)
+            })
+            content.addView(row)
+            rows += Row(check, edit, f.type)
+        }
+
+        val scroll = ScrollView(this).apply { addView(content) }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.serial_found_title)
+            .setView(scroll)
+            .setPositiveButton(R.string.serial_add_selected) { _, _ ->
+                var added = 0
+                var last = ""
+                for (r in rows) {
+                    val v = r.edit.text.toString().trim().uppercase()
+                    if (!r.check.isChecked || v.isEmpty()) continue
+                    if (SerialStore.add(this, listId, v, r.type)) { added++; last = v }
+                }
+                if (added > 0) {
+                    tone?.startTone(ToneGenerator.TONE_PROP_BEEP, 120)
+                    vibrate()
+                    lastText.text = if (added == 1) getString(R.string.serial_added, last)
+                        else getString(R.string.serial_added_count, added)
+                    lastText.setBackgroundResource(R.drawable.rec_background_ok)
+                    lastText.visibility = View.VISIBLE
+                    refresh()
+                }
+            }
+            .setNeutralButton(R.string.serial_retake, null)
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun rotateAndScale(src: Bitmap, rotation: Int): Bitmap {
+        val scale = minOf(1f, MAX_SIDE.toFloat() / maxOf(src.width, src.height))
+        if (rotation == 0 && scale == 1f) return src
+        val m = Matrix().apply { postScale(scale, scale); postRotate(rotation.toFloat()) }
+        return Bitmap.createBitmap(src, 0, 0, src.width, src.height, m, true)
+    }
+
+    private fun loadBitmap(uri: Uri): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+        var sample = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= MAX_SIDE) sample *= 2
+        val bmp = contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample })
+        } ?: return null
+        val rotation = contentResolver.openInputStream(uri)?.use { ExifInterface(it).rotationDegrees } ?: 0
+        return rotateAndScale(bmp, rotation)
     }
 
     private fun addSerial(value: String, type: String, quietIfDuplicate: Boolean) {
