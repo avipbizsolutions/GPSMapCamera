@@ -86,6 +86,23 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <style name="CallChip">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">46dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/call_chip</item>
+        <item name="android:gravity">center</item>
+        <item name="android:drawableStart">@drawable/ic_phone</item>
+        <item name="android:drawablePadding">6dp</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:textColor">#FFD54F</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
     <style name="Theme.GPSMapCamera.Splash">
         <item name="android:windowBackground">@drawable/splash_background</item>
         <item name="android:statusBarColor">#08295F</item>
