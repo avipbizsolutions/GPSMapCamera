@@ -1,38 +1,49 @@
-# AVIP GPSCam – Google Play listing and submission guide
+# AVIP Tools – Google Play listing and submission guide
 
-App ID on Google Play: **in.avipsolar.gpscam** (permanent – cannot be changed after the first upload)
+App ID on Google Play: **in.avipsolar.tools** (permanent – cannot be changed after the first upload)
 Privacy policy URL: **https://avipbizsolutions.github.io/GPSMapCamera/privacy.html**
+(AVIP Tools was previously called AVIP GPSCam. The link version keeps its old ID so existing users update automatically.)
 
 ## 1. Store listing (Grow → Store presence → Main store listing)
 
-**App name** (max 30): `AVIP GPSCam: GPS Map Camera`
+**App name** (max 30): `AVIP Tools: GPS Cam & Scanner`
 
 **Short description** (max 80):
-`Free GPS camera: stamp map, address, date & time on photos & videos. No ads.`
+`GPS map camera, tilt meter, PDF scanner & serial number scanner. Free, no ads.`
 
 **Full description:**
 
-AVIP GPSCam stamps every photo and video with a map, the full address, latitude and longitude, date and time, and the direction the camera faced. It is ideal proof for site visits, solar and electrical installations, inspections, deliveries, construction progress and any field work.
+AVIP Tools puts the everyday field tools of a solar, electrical or construction team into one free app: a GPS map camera, a tilt meter, a multi-page document scanner and a barcode / serial number scanner.
 
-**Why AVIP GPSCam**
+**Why AVIP Tools**
 • 100% free – no charges, ever
 • No ads – nothing to skip or close
-• Fast and reliable – opens quickly, finds your location while it loads
+• Fast and reliable – opens quickly and finds your location while it loads
 • Light on your phone – will not slow it down
 
-**Features**
-• GPS stamp with mini map, address, latitude/longitude, date and time
+**GPS Camera**
+• Stamps photos and videos with a mini map, address, latitude/longitude, date and time
 • North arrow and "Facing" direction on photos
 • See the stamp live on the camera screen before you shoot
-• Photos and videos, in portrait or landscape
-• HD or SD quality – choose smaller files for quick sharing
-• Zoom (pinch or 0.5x / 1x / 2x / 5x), tap to focus
-• Grid lines and a level to keep shots straight
+• Portrait or landscape, HD or SD, zoom, tap to focus, grid lines and level
 • Built-in gallery: swipe through, select several, share or delete
-• GPS details also saved inside the photo file (EXIF)
-• Works offline – coordinates and time are stamped even without internet
 
-Photos and videos stay on your phone in Pictures/GPSMapCamera and are shared only when you choose.
+**Tilt Meter**
+• Lay the phone on a roof or panel to read its angle
+• Bubble level, hold reading, set zero
+• Shows which way the surface faces and the best fixed panel tilt for your location
+
+**Document Scanner**
+• Scan many pages into one PDF with automatic cropping and clean-up
+• Saved in Documents/AVIP Tools – open, share or delete
+
+**Serial Scanner**
+• Make a list per site or customer and scan panel and inverter barcodes / QR codes – each new code is added automatically
+• Read printed serial numbers with text recognition and tap to add
+• Torch for dark inverter rooms, manual entry, copy all
+• Share the list as an Excel (CSV) file or as a text message
+
+Everything you capture stays on your phone and is shared only when you choose.
 
 Made by AVIP Business Solutions LLP, Patna – one stop solution for all your solar requirements.
 Contact: 9288076289 | 9939476289 | contact@avipsolar.in
@@ -40,9 +51,9 @@ Contact: 9288076289 | 9939476289 | contact@avipsolar.in
 **Graphics**
 - App icon: `play-icon-512.png` (512 × 512)
 - Feature graphic: `play-feature-graphic-1024x500.png` (1024 × 500)
-- Phone screenshots (2–8 needed, take on your phone): camera screen with the live stamp; a saved photo with the stamp; a landscape photo; the gallery with items selected; the full-screen viewer; the launch screen.
+- Phone screenshots (2–8, take on your phone): home screen; GPS camera with the live stamp; a saved photo with the stamp; Tilt Meter on a roof/panel; Document Scanner with saved PDFs; Serial Scanner with a list of scanned serials.
 
-**Category:** Photography  **Tags:** Camera, Photography, Tools
+**Category:** Tools  **Tags:** Camera, Productivity, Tools
 **Contact details:** email contact@avipsolar.in, phone +91 9288076289, website https://avipsolar.in
 
 ## 2. App content (Policy → App content)
@@ -71,23 +82,25 @@ Contact: 9288076289 | 9939476289 | contact@avipsolar.in
 | Personal info → Name | Yes | No | Required | Developer communications, Marketing |
 | Personal info → Phone number | Yes | No | Required | Developer communications, Marketing |
 | Personal info → Other info (company name) | Yes | No | Required | Developer communications, Marketing |
-| Device or other IDs (random install ID created by the app) | Yes | No | Required | App functionality |
+| Device or other IDs (random install ID created by the app; ML Kit installation/device identifier) | Yes | No | Required | App functionality, Analytics |
+| App info and performance → Diagnostics (ML Kit performance and error information, sent to Google) | Yes | No | Required | Analytics |
 | Location → Approximate location (map tiles requested from OpenStreetMap) | Yes, processed ephemerally | Yes (OpenStreetMap, for the map image) | Required for the map stamp | App functionality |
 
-Not collected (stay on the phone): precise location, photos, videos, audio, files, contacts, app activity. Sharing a photo is user-initiated and is not declared.
+Not collected (stay on the phone): precise location, photos, videos, scanned documents, scanned serial numbers, audio, files, contacts. Sharing a photo, PDF or serial list is started by the user and is not declared.
+Google ML Kit's own disclosure: https://developers.google.com/ml-kit/android-data-disclosure
 
 ## 4. Release (Test and release)
 
-1. **Play App Signing:** keep Google's default (Google manages the app signing key). Our file `avip-gpscam-upload.jks` is the **upload key**.
+1. **Play App Signing:** keep Google's default (Google manages the app signing key). Our file `avip-gpscam-upload.jks` is the **upload key** (the name is from before the rename; it is still the right key).
 2. Personal developer account: create a **Closed testing** track first, add at least 12 testers, keep them opted in for 14 days, then apply for production. Organization account: go straight to **Production**.
-3. Upload `AVIP-GPSCam-play-<version>.aab`. Release name: the version. Release notes:
-   `First release of AVIP GPSCam – free GPS map camera with live stamp, photos and videos, HD/SD, zoom, grid & level, gallery with share and delete.`
+3. Upload `AVIP-Tools-play-<version>.aab`. Release notes:
+   `First release of AVIP Tools – GPS map camera, tilt meter, multi-page PDF document scanner and barcode / serial number scanner. Free, no ads.`
 4. Countries: India (add others if wanted). Price: Free.
 5. Send for review (usually a few days for a new app).
 
 ## 5. Future updates
 
-Every change pushed to GitHub builds a new Play bundle with a higher version number automatically. It is published unsigned (`AVIP-GPSCam-play-unsigned.aab`) and signed with the upload key before uploading to Play. To have GitHub sign it automatically, add these repository secrets (GitHub → repo → Settings → Secrets and variables → Actions):
+Every change pushed to GitHub builds a new Play bundle with a higher version number automatically. It is published unsigned (`AVIP-Tools-play-unsigned.aab`) and signed with the upload key before uploading to Play. To have GitHub sign it automatically, add these repository secrets (GitHub → repo → Settings → Secrets and variables → Actions):
 `UPLOAD_KEYSTORE_BASE64` (the .jks file, base64), `UPLOAD_KEYSTORE_PASSWORD`, `UPLOAD_KEY_ALIAS` = `upload`, `UPLOAD_KEY_PASSWORD`.
 
 ## 6. Keep safe
