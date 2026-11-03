@@ -145,7 +145,8 @@ class SplashActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             val minimumShow = async { delay(3000) }
-            val latest = withTimeoutOrNull(3000) { withContext(Dispatchers.IO) { Updater.fetchLatest() } }
+            // Wait up to 8 s on slow mobile data so a new version is not missed.
+            val latest = withTimeoutOrNull(8000) { withContext(Dispatchers.IO) { Updater.fetchLatest() } }
 
             if (latest != null && latest.versionCode > versionCode) {
                 pendingRelease = latest
