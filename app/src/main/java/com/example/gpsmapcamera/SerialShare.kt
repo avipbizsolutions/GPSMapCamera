@@ -132,7 +132,7 @@ object SerialShare {
             pageNo++
             page = doc.startPage(PdfDocument.PageInfo.Builder(pw, ph, pageNo).create())
             c = page!!.canvas
-            c!!.drawText("AVIP Tools · ${list.name}", margin, ph - 20f, grey)
+            c!!.drawText("SolarSite Pro · ${list.name}", margin, ph - 20f, grey)
             c!!.drawText("Page $pageNo", pw - margin - grey.measureText("Page $pageNo"), ph - 20f, grey)
             y = margin
         }

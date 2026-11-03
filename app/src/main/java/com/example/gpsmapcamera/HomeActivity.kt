@@ -7,7 +7,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
-/** AVIP Tools home: one card per tool. */
+/** SolarSite Pro home: one card per tool. */
 class HomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

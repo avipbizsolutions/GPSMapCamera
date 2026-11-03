@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">AVIP Tools</string>
-    <string name="tagline">GPS Camera · Tilt · Scanners</string>
+    <string name="app_name">SolarSite Pro</string>
+    <string name="tagline">GPS Camera · Tilt · Doc &amp; Serial Scanner</string>
     <string name="version_label">Version %1$s</string>
     <string name="developed_by">Developed by</string>
     <string name="company_name">AVIP Business Solutions LLP</string>
@@ -33,7 +33,7 @@
     <string name="godown_address" translatable="false"><b>Godown:</b> AIIMS–Naubatpur New Nahar Road, Chirora, Patna – 801109</string>
     <string name="godown_lat" translatable="false">25.5201314</string>
     <string name="godown_lng" translatable="false">84.9917706</string>
-    <string name="home_version">AVIP Tools %1$s · AVIP Business Solutions LLP</string>
+    <string name="home_version">SolarSite Pro %1$s · AVIP Business Solutions LLP</string>
     <string name="tilt_instructions">Lay the phone flat on the roof or panel. To see which way it faces, point the top of the phone down the slope.</string>
     <string name="tilt_no_sensor">No tilt sensor on this phone</string>
     <string name="tilt_lay_flat">Lay the phone flat on the surface</string>
@@ -146,11 +146,11 @@ Tap “+ New list” to start scanning.</string>
     <string name="updating_to">Updating to version %1$s…</string>
     <string name="installing_update">Installing update…</string>
     <string name="update_failed">Update could not be installed – will try again next time.</string>
-    <string name="updated_title">AVIP Tools updated</string>
+    <string name="updated_title">SolarSite Pro updated</string>
     <string name="updated_text">Updated to the latest version %1$s</string>
     <string name="updates_channel">App updates</string>
     <string name="auto_update_title">Automatic updates</string>
-    <string name="auto_update_message">Version %1$s is available. To keep AVIP Tools updated automatically, allow it to install its own updates on the next screen. You only need to do this once.</string>
+    <string name="auto_update_message">Version %1$s is available. To keep SolarSite Pro updated automatically, allow it to install its own updates on the next screen. You only need to do this once.</string>
     <string name="allow">Allow</string>
     <string name="later">Later</string>
     <string name="grid_toggle">Show or hide grid lines and level</string>

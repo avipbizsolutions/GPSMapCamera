@@ -53,9 +53,10 @@ jobs:
           set -o pipefail
           gradle assembleGithubDebug bundlePlayRelease assemblePlayRelease --console=plain 2>&1 | tee build.log
           # Link version (self-updating)
-          cp app/build/outputs/apk/github/debug/app-github-debug.apk "AVIP-Tools-${VERSION_NAME}.apk"
-          # Fixed names, so .../releases/latest/download/AVIP-Tools.apk always gets the newest.
-          # AVIP-GPSCam.apk keeps the old shared link working.
+          cp app/build/outputs/apk/github/debug/app-github-debug.apk "SolarSite-Pro-${VERSION_NAME}.apk"
+          # Fixed names, so .../releases/latest/download/SolarSite-Pro.apk always gets the newest.
+          # AVIP-Tools.apk and AVIP-GPSCam.apk keep the old shared links working.
+          cp app/build/outputs/apk/github/debug/app-github-debug.apk SolarSite-Pro.apk
           cp app/build/outputs/apk/github/debug/app-github-debug.apk AVIP-Tools.apk
           cp app/build/outputs/apk/github/debug/app-github-debug.apk AVIP-GPSCam.apk
           # Play Store bundle
@@ -84,9 +85,9 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: AVIP-Tools-${{ env.VERSION_NAME }}
+          name: SolarSite-Pro-${{ env.VERSION_NAME }}
           path: |
-            AVIP-Tools-${{ env.VERSION_NAME }}.apk
+            SolarSite-Pro-${{ env.VERSION_NAME }}.apk
             AVIP-Tools-play*.aab
 
       # Phones with the link version check this release on launch and update themselves.
@@ -95,10 +96,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION_NAME }}
-          name: AVIP Tools ${{ env.VERSION_NAME }}
+          name: SolarSite Pro ${{ env.VERSION_NAME }}
           body: Automatic build from commit ${{ github.sha }}.
           files: |
-            AVIP-Tools-${{ env.VERSION_NAME }}.apk
+            SolarSite-Pro-${{ env.VERSION_NAME }}.apk
+            SolarSite-Pro.apk
             AVIP-Tools.apk
             AVIP-GPSCam.apk
             AVIP-Tools-play*.aab
