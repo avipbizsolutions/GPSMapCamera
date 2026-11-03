@@ -16,6 +16,7 @@ class RegistrationActivity : AppCompatActivity() {
         setContentView(R.layout.activity_registration)
         SystemBars.apply(this)
 
+        Lang.bind(this, findViewById(R.id.langToggle))
         val name = findViewById<EditText>(R.id.nameInput)
         val company = findViewById<EditText>(R.id.companyInput)
         val mobile = findViewById<EditText>(R.id.mobileInput)

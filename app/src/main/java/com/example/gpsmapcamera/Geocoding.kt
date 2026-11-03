@@ -17,7 +17,7 @@ object Geocoding {
     fun lookup(context: Context, loc: Location): PlaceInfo? {
         if (!Geocoder.isPresent()) return null
         return try {
-            val a = Geocoder(context, Locale.getDefault())
+            val a = Geocoder(context, Locale("en", "IN")) // stamps stay in English
                 .getFromLocation(loc.latitude, loc.longitude, 1)
                 ?.firstOrNull() ?: return null
             val title = listOfNotNull(a.locality ?: a.subAdminArea, a.adminArea, a.countryName)

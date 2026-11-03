@@ -27,7 +27,7 @@ object Stamp {
         String.format(Locale.US, "Lat %.6f°  Long %.6f°", loc.latitude, loc.longitude)
 
     fun formatTime(d: Date): String =
-        SimpleDateFormat("EEE, dd/MM/yyyy hh:mm a 'GMT'XXX", Locale.getDefault()).format(d)
+        SimpleDateFormat("EEE, dd/MM/yyyy hh:mm a 'GMT'XXX", Locale.ENGLISH).format(d)
 
     /** [heading] = direction the camera faced (degrees from north); adds a north arrow when set. */
     fun draw(

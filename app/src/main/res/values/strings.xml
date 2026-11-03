@@ -129,6 +129,8 @@ Tap “+ New list” to start scanning.</string>
     <string name="serial_photo_delete">Delete photo</string>
     <string name="serial_photo_delete_msg">Delete this photo? Its serial numbers stay in the list.</string>
     <string name="serial_share_text">Text message</string>
+    <string name="lang_toggle">हिंदी</string>
+    <string name="lang_toggle_desc">Change language / भाषा बदलें</string>
     <string name="loading">Loading…</string>
     <string name="gps_finding">📍 Finding your location…</string>
     <string name="gps_found">📍 Location found ✓</string>

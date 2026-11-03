@@ -20,6 +20,7 @@ class HomeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_home)
         SystemBars.apply(this)
 
+        Lang.bind(this, findViewById(R.id.langToggle))
         open(R.id.toolCamera, MainActivity::class.java)
         open(R.id.toolTilt, TiltActivity::class.java)
         open(R.id.toolDocs, DocScannerActivity::class.java)

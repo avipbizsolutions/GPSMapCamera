@@ -96,7 +96,7 @@ class SplashActivity : AppCompatActivity() {
         lifecycleScope.launch {
             var dots = 0
             while (true) {
-                loadingText.text = "Loading" + ".".repeat(dots + 1)
+                loadingText.text = getString(R.string.loading).trimEnd('…', '.') + ".".repeat(dots + 1)
                 dots = (dots + 1) % 3
                 gpsText.text = getString(
                     if (LocationWarmup.location != null) R.string.gps_found else R.string.gps_finding
