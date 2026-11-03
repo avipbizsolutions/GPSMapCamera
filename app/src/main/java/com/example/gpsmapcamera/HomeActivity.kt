@@ -42,7 +42,10 @@ class HomeActivity : AppCompatActivity() {
         findViewById<View>(R.id.bscGetApp).setOnClickListener { openLink(getString(R.string.bsc_app_url)) }
         findViewById<View>(R.id.bscCard).setOnClickListener { joinGroup() }
 
-        // Distributor card: tap to call for a quote.
+        // Stockist ribbon: logos scroll slowly; tap to call for a quote.
+        findViewById<LogoMarqueeView>(R.id.brandsMarquee).setLogos(
+            listOf(R.drawable.logo_microtek, R.drawable.logo_finolex, R.drawable.logo_apollo, R.drawable.logo_sunrack)
+        )
         findViewById<View>(R.id.brandsCard).setOnClickListener { dial(getString(R.string.company_phone)) }
 
         findViewById<TextView>(R.id.homeVersion).text =

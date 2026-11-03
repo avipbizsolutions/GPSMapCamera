@@ -30,7 +30,8 @@
     <string name="bsc_group_url" translatable="false">https://chat.whatsapp.com/J2VnpBBgvULEqggdjGCvBf</string>
     <string name="bsc_app_url" translatable="false">https://github.com/avipbizsolutions/AVIPEstimateMaker/releases/latest/download/Bihar-Solar-Circle.apk</string>
     <string name="home_call_title">Need Solar Materials?</string>
-    <string name="brands_title">Authorised Distributor</string>
+    <string name="brands_title">Authorised Stockist · tap to enquire</string>
+    <string name="brands_names" translatable="false">Microtek Solar, Finolex, APL Apollo, Sunrack</string>
     <string name="brands_subtitle">Genuine products available at AVIP Godown · tap to enquire</string>
     <string name="brand_microtek" translatable="false">Microtek Solar</string>
     <string name="brand_finolex" translatable="false">Finolex Wires</string>
