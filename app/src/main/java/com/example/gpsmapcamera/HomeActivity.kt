@@ -44,7 +44,10 @@ class HomeActivity : AppCompatActivity() {
 
         // Stockist ribbon: logos scroll slowly; tap to call for a quote.
         findViewById<LogoMarqueeView>(R.id.brandsMarquee).setLogos(
-            listOf(R.drawable.logo_microtek, R.drawable.logo_finolex, R.drawable.logo_apollo, R.drawable.logo_sunrack)
+            listOf(
+                R.drawable.logo_microtek, R.drawable.logo_adani, R.drawable.logo_finolex,
+                R.drawable.logo_waaree, R.drawable.logo_apollo, R.drawable.logo_sunrack,
+            )
         )
         findViewById<View>(R.id.brandsCard).setOnClickListener { dial(getString(R.string.company_phone)) }
 
