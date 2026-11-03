@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generic group chat icon -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="18dp" android:height="18dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M4,3 H17 Q19,3 19,5 V12 Q19,14 17,14 H9 L5,17.5 V14 H4 Q2,14 2,12 V5 Q2,3 4,3 Z" />
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.75"
+        android:pathData="M21,8 Q22,8 22,10 V16 Q22,18 20,18 H19 V21 L15.5,18 H11 Q9.5,18 9.2,16 H17 Q21,16 21,12 Z" />
+</vector>

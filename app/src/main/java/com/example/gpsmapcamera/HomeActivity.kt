@@ -32,11 +32,24 @@ class HomeActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.godownAddress).text = getText(R.string.godown_address) // keeps the bold label
             findViewById<View>(R.id.godownDirections).setOnClickListener { openGodownDirections(address.removePrefix("Godown: ")) }
         }
+        // Bihar Solar Circle: WhatsApp group invite (WhatsApp shows its Join screen) and app download.
+        findViewById<View>(R.id.bscJoinGroup).setOnClickListener { openLink(getString(R.string.bsc_group_url)) }
+        findViewById<View>(R.id.bscGetApp).setOnClickListener { openLink(getString(R.string.bsc_app_url)) }
+        findViewById<View>(R.id.bscCard).setOnClickListener { openLink(getString(R.string.bsc_group_url)) }
+
         // Distributor card: tap to call for a quote.
         findViewById<View>(R.id.brandsCard).setOnClickListener { dial(getString(R.string.company_phone)) }
 
         findViewById<TextView>(R.id.homeVersion).text =
             getString(R.string.home_version, AppVersion.name(this))
+    }
+
+    private fun openLink(url: String) {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (_: Exception) {
+            android.widget.Toast.makeText(this, R.string.no_viewer, android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun dial(number: String) {
