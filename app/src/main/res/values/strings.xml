@@ -23,6 +23,9 @@
     <string name="bsc_title">Bihar Solar Circle</string>
     <string name="bsc_subtitle">Bihar\'s network of solar vendors &amp; installers · Connect · Collaborate · Grow</string>
     <string name="bsc_join_group">Join Group</string>
+    <string name="bsc_join_with">Join the group using</string>
+    <string name="bsc_whatsapp">WhatsApp</string>
+    <string name="bsc_whatsapp_business">WhatsApp Business</string>
     <string name="bsc_get_app">Get the App</string>
     <string name="bsc_group_url" translatable="false">https://chat.whatsapp.com/J2VnpBBgvULEqggdjGCvBf</string>
     <string name="bsc_app_url" translatable="false">https://github.com/avipbizsolutions/AVIPEstimateMaker/releases/latest/download/Bihar-Solar-Circle.apk</string>
