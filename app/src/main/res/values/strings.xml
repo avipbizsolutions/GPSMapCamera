@@ -51,13 +51,13 @@
     <string name="tilt_recommend_bihar">Best fixed panel tilt in Bihar: about 25°–27°, facing South
 (turn on location for your exact value)</string>
     <string name="docs_scan_new">Scan new document</string>
-    <string name="docs_hint">Scan many pages into one PDF · auto-crop &amp; clean-up · saved in Documents/AVIP Tools</string>
+    <string name="docs_hint">Scan many pages into one PDF · auto-crop &amp; clean-up · saved in Documents/SolarSite Pro</string>
     <string name="docs_saved_title">Saved documents</string>
     <string name="docs_empty">No documents yet.
 Tap “Scan new document” to start.</string>
     <string name="docs_name_title">Name this PDF (%1$d pages)</string>
     <string name="docs_save">Save</string>
-    <string name="docs_saved">PDF saved in Documents/AVIP Tools</string>
+    <string name="docs_saved">PDF saved in Documents/SolarSite Pro</string>
     <string name="docs_save_failed">Could not save the PDF</string>
     <string name="docs_delete_title">Delete “%1$s”?</string>
     <string name="docs_delete_failed">Could not delete this file</string>

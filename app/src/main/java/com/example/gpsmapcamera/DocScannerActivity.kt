@@ -41,13 +41,71 @@ import java.util.Locale
 /** A PDF saved by the document scanner. */
 data class ScanDoc(val name: String, val uri: Uri, val size: Long, val modified: Long)
 
-/** Saves and lists scanned PDFs in Documents/AVIP Tools. */
+/** Saves and lists scanned PDFs in Documents/SolarSite Pro. */
 object ScanStore {
-    const val FOLDER = "AVIP Tools"
+    const val FOLDER = "SolarSite Pro"
+    /** Folder used before the app was renamed; its PDFs are moved to [FOLDER]. */
+    private const val OLD_FOLDER = "AVIP Tools"
+    @Volatile private var migrated = false
 
     @Suppress("DEPRECATION")
-    private fun legacyDir(): File =
-        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), FOLDER)
+    private fun legacyDir(folder: String = FOLDER): File =
+        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), folder)
+
+    /**
+     * Moves PDFs from Documents/AVIP Tools to Documents/SolarSite Pro (once per launch until done).
+     * Files that cannot be moved (e.g. saved by an earlier install) stay where they are and are still listed.
+     */
+    @Synchronized
+    fun migrateOldFolder(context: Context) {
+        if (migrated) return
+        val prefs = context.getSharedPreferences("docs", Context.MODE_PRIVATE)
+        if (prefs.getBoolean("folder_moved", false)) { migrated = true; return }
+        var allMoved = true
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val files = MediaStore.Files.getContentUri("external")
+                val ids = mutableListOf<Long>()
+                context.contentResolver.query(
+                    files, arrayOf(MediaStore.MediaColumns._ID),
+                    "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? AND ${MediaStore.MediaColumns.MIME_TYPE} = ?",
+                    arrayOf("${Environment.DIRECTORY_DOCUMENTS}/$OLD_FOLDER%", "application/pdf"), null
+                )?.use { c -> while (c.moveToNext()) ids += c.getLong(0) }
+                for (id in ids) {
+                    try {
+                        val moved = context.contentResolver.update(
+                            ContentUris.withAppendedId(files, id),
+                            ContentValues().apply {
+                                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS + "/" + FOLDER + "/")
+                            }, null, null
+                        )
+                        if (moved <= 0) allMoved = false
+                    } catch (_: Exception) {
+                        allMoved = false
+                    }
+                }
+            } else {
+                val old = legacyDir(OLD_FOLDER)
+                val pdfs = old.listFiles { f -> f.name.endsWith(".pdf", true) } ?: emptyArray()
+                if (pdfs.isNotEmpty()) {
+                    val dir = legacyDir().apply { mkdirs() }
+                    val paths = ArrayList<String>()
+                    for (f in pdfs) {
+                        var target = File(dir, f.name)
+                        var n = 2
+                        while (target.exists()) target = File(dir, f.name.removeSuffix(".pdf") + " ($n).pdf").also { n++ }
+                        if (f.renameTo(target)) { paths += f.absolutePath; paths += target.absolutePath } else allMoved = false
+                    }
+                    if (paths.isNotEmpty()) MediaScannerConnection.scanFile(context, paths.toTypedArray(), null, null)
+                }
+                if (allMoved) old.delete() // only removes the folder if it is now empty
+            }
+        } catch (_: Exception) {
+            allMoved = false
+        }
+        migrated = true
+        if (allMoved) prefs.edit().putBoolean("folder_moved", true).apply()
+    }
 
     fun save(context: Context, source: Uri, name: String): Uri {
         val fileName = name.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim().ifEmpty { "Scan" } + ".pdf"
@@ -83,11 +141,12 @@ object ScanStore {
     }
 
     fun list(context: Context): List<ScanDoc> {
+        migrateOldFolder(context)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            return legacyDir().listFiles { f -> f.name.endsWith(".pdf", true) }
-                ?.sortedByDescending { it.lastModified() }
-                ?.map { ScanDoc(it.name.removeSuffix(".pdf"), fileUri(context, it), it.length(), it.lastModified()) }
-                ?: emptyList()
+            return (legacyDir().listFiles { f -> f.name.endsWith(".pdf", true) }.orEmpty() +
+                legacyDir(OLD_FOLDER).listFiles { f -> f.name.endsWith(".pdf", true) }.orEmpty())
+                .sortedByDescending { it.lastModified() }
+                .map { ScanDoc(it.name.removeSuffix(".pdf"), fileUri(context, it), it.length(), it.lastModified()) }
         }
         val out = mutableListOf<ScanDoc>()
         val files = MediaStore.Files.getContentUri("external")
@@ -97,8 +156,14 @@ object ScanStore {
             MediaStore.MediaColumns.SIZE,
             MediaStore.MediaColumns.DATE_MODIFIED,
         )
-        val selection = "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? AND ${MediaStore.MediaColumns.MIME_TYPE} = ?"
-        val args = arrayOf("${Environment.DIRECTORY_DOCUMENTS}/$FOLDER%", "application/pdf")
+        // New folder, plus any old-folder PDFs that could not be moved.
+        val selection = "(${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? OR ${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ?)" +
+            " AND ${MediaStore.MediaColumns.MIME_TYPE} = ?"
+        val args = arrayOf(
+            "${Environment.DIRECTORY_DOCUMENTS}/$FOLDER/%",
+            "${Environment.DIRECTORY_DOCUMENTS}/$OLD_FOLDER/%",
+            "application/pdf",
+        )
         context.contentResolver.query(
             files, projection, selection, args, "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
         )?.use { c ->
@@ -117,7 +182,7 @@ object ScanStore {
 
     fun delete(context: Context, doc: ScanDoc): Boolean = try {
         if (doc.uri.scheme == "file" || doc.uri.authority?.endsWith(".files") == true) {
-            File(legacyDir(), doc.name + ".pdf").delete()
+            File(legacyDir(), doc.name + ".pdf").delete() || File(legacyDir(OLD_FOLDER), doc.name + ".pdf").delete()
         } else {
             context.contentResolver.delete(doc.uri, null, null) > 0
         }

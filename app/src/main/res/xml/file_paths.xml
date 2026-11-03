@@ -2,6 +2,7 @@
 <paths>
     <cache-path name="exports" path="exports/" />
     <files-path name="serial_photos" path="serial_photos/" />
-    <!-- Android 9 and older: scanned PDFs in Documents/AVIP Tools -->
-    <external-path name="docs" path="Documents/AVIP Tools/" />
+    <!-- Android 9 and older: scanned PDFs in Documents/SolarSite Pro (and the old Documents/AVIP Tools) -->
+    <external-path name="docs" path="Documents/SolarSite Pro/" />
+    <external-path name="docs_old" path="Documents/AVIP Tools/" />
 </paths>
