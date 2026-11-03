@@ -143,8 +143,10 @@ object ScanStore {
     fun list(context: Context): List<ScanDoc> {
         migrateOldFolder(context)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            return (legacyDir().listFiles { f -> f.name.endsWith(".pdf", true) }.orEmpty() +
-                legacyDir(OLD_FOLDER).listFiles { f -> f.name.endsWith(".pdf", true) }.orEmpty())
+            val pdfs = listOf(legacyDir(), legacyDir(OLD_FOLDER)).flatMap { dir ->
+                dir.listFiles()?.filter { f -> f.name.endsWith(".pdf", true) } ?: emptyList()
+            }
+            return pdfs
                 .sortedByDescending { it.lastModified() }
                 .map { ScanDoc(it.name.removeSuffix(".pdf"), fileUri(context, it), it.length(), it.lastModified()) }
         }
