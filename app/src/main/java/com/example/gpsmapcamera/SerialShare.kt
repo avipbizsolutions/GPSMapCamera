@@ -10,7 +10,6 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
-import android.graphics.pdf.PdfDocument
 import android.net.Uri
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -111,86 +110,106 @@ object SerialShare {
         }
     }
 
-    private fun writePdf(activity: Activity, list: SerialList, file: File) {
-        val pw = 595
-        val ph = 842
-        val margin = 40f
-        val doc = PdfDocument()
-        val title = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 18f; typeface = Typeface.DEFAULT_BOLD; color = Color.rgb(8, 41, 95) }
-        val bold = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 11f; typeface = Typeface.DEFAULT_BOLD; color = Color.BLACK }
-        val body = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 11f; color = Color.BLACK }
-        val mono = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 11f; typeface = Typeface.MONOSPACE; color = Color.BLACK }
-        val grey = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 9f; color = Color.GRAY }
-        val line = Paint().apply { color = Color.rgb(210, 216, 224); strokeWidth = 0.7f }
+    /** Largest PDF we make; photos are made smaller until the report fits. */
+    private const val PDF_LIMIT = 4_800_000L
 
-        var pageNo = 0
-        var page: PdfDocument.Page? = null
-        var c: Canvas? = null
+    /** Photo size steps (longer side in pixels, JPEG quality), best first. */
+    private val PDF_STEPS = listOf(1600 to 80, 1400 to 75, 1200 to 70, 1000 to 65, 850 to 60, 700 to 55, 600 to 50, 480 to 45)
+
+    private fun writePdf(activity: Activity, list: SerialList, file: File) {
+        val photos = SerialStore.photos(list)
+        // Try the best photo quality first; step down until the report fits the limit.
+        for ((i, step) in PDF_STEPS.withIndex()) {
+            val last = i == PDF_STEPS.lastIndex
+            val pdf = buildPdf(activity, list, photos, step.first, step.second, if (last) Long.MAX_VALUE else PDF_LIMIT)
+                ?: continue
+            pdf.writeTo(file)
+            if (file.length() <= PDF_LIMIT || last) return
+        }
+    }
+
+    /** Builds the report; returns null as soon as the photos alone go over [limit]. */
+    private fun buildPdf(
+        activity: Activity,
+        list: SerialList,
+        photos: List<Pair<String, List<SerialItem>>>,
+        maxSide: Int,
+        quality: Int,
+        limit: Long,
+    ): SimplePdf? {
+        val pdf = SimplePdf()
+        val pw = pdf.pageWidth
+        val ph = pdf.pageHeight
+        val margin = 40f
+        val navy = Color.rgb(8, 41, 95)
+        val lineColor = Color.rgb(210, 216, 224)
+        val fr = SimplePdf.Font.REGULAR
+        val fb = SimplePdf.Font.BOLD
+        val fm = SimplePdf.Font.MONO
         var y = 0f
+
         fun newPage() {
-            page?.let { doc.finishPage(it) }
-            pageNo++
-            page = doc.startPage(PdfDocument.PageInfo.Builder(pw, ph, pageNo).create())
-            c = page!!.canvas
-            c!!.drawText("SolarSite Pro · ${list.name}", margin, ph - 20f, grey)
-            c!!.drawText("Page $pageNo", pw - margin - grey.measureText("Page $pageNo"), ph - 20f, grey)
+            pdf.newPage()
+            val n = pdf.pageCount
+            pdf.text(margin, ph - 20f, pdf.fit("SolarSite Pro · ${list.name}", fr, 9f, 400f), fr, 9f, Color.GRAY)
+            val label = "Page $n"
+            pdf.text(pw - margin - pdf.width(label, fr, 9f), ph - 20f, label, fr, 9f, Color.GRAY)
             y = margin
         }
-        fun need(h: Float) { if (y + h > ph - 40f) newPage() }
 
-        val photos = SerialStore.photos(list)
         val photoNo = photos.mapIndexed { i, p -> p.first to i + 1 }.toMap()
 
         newPage()
         y += 18f
-        c!!.drawText(list.name, margin, y, title)
+        pdf.text(margin, y, pdf.fit(list.name, fb, 18f, pw - 2 * margin), fb, 18f, navy)
         y += 18f
-        c!!.drawText("${list.items.size} serial numbers · ${photos.size} label photos · " +
-            "report made ${timeFmt.format(Date())}", margin, y, body)
+        pdf.text(margin, y, "${list.items.size} serial numbers · ${photos.size} label photos · " +
+            "report made ${timeFmt.format(Date())}", fr, 11f)
         y += 22f
 
-        // Table
         val cols = floatArrayOf(margin, margin + 36f, margin + 270f, margin + 350f, margin + 470f)
         fun header() {
-            listOf("S.No", "Serial number", "Type", "Scanned at", "Photo").forEachIndexed { i, h -> c!!.drawText(h, cols[i], y, bold) }
-            y += 5f; c!!.drawLine(margin, y, pw - margin, y, line); y += 13f
+            listOf("S.No", "Serial number", "Type", "Scanned at", "Photo").forEachIndexed { i, h -> pdf.text(cols[i], y, h, fb, 11f) }
+            y += 5f; pdf.line(margin, y, pw - margin, y, lineColor); y += 13f
         }
         header()
         list.items.forEachIndexed { i, it ->
             if (y + 16f > ph - 40f) { newPage(); header() }
-            c!!.drawText("${i + 1}", cols[0], y, body)
-            c!!.drawText(fit(it.value, mono, cols[2] - cols[1] - 6f), cols[1], y, mono)
-            c!!.drawText(fit(it.type, body, cols[3] - cols[2] - 6f), cols[2], y, body)
-            c!!.drawText(timeFmt.format(Date(it.time)), cols[3], y, body)
-            c!!.drawText(photoNo[it.photo]?.let { n -> "Photo $n" } ?: "–", cols[4], y, body)
-            y += 4f; c!!.drawLine(margin, y, pw - margin, y, line); y += 12f
+            pdf.text(cols[0], y, "${i + 1}", fr, 11f)
+            pdf.text(cols[1], y, pdf.fit(it.value, fm, 11f, cols[2] - cols[1] - 6f), fm, 11f)
+            pdf.text(cols[2], y, pdf.fit(it.type, fr, 11f, cols[3] - cols[2] - 6f), fr, 11f)
+            pdf.text(cols[3], y, timeFmt.format(Date(it.time)), fr, 11f)
+            pdf.text(cols[4], y, photoNo[it.photo]?.let { n -> "Photo $n" } ?: "–", fr, 11f)
+            y += 4f; pdf.line(margin, y, pw - margin, y, lineColor); y += 12f
         }
 
         // Photos, two per page where they fit
         val maxW = pw - 2 * margin
-        photos.forEachIndexed { i, (photo, items) ->
-            val bmp = decode(SerialStore.photoFile(activity, list.id, photo), 1400) ?: return@forEachIndexed
+        for ((i, entry) in photos.withIndex()) {
+            val (photo, items) = entry
+            val src = decode(SerialStore.photoFile(activity, list.id, photo), maxSide) ?: continue
+            val s = minOf(1f, maxSide.toFloat() / maxOf(src.width, src.height))
+            val bmp = if (s < 1f) Bitmap.createScaledBitmap(src, (src.width * s).toInt(), (src.height * s).toInt(), true) else src
             val maxH = 300f
             val scale = minOf(maxW / bmp.width, maxH / bmp.height)
             val w = bmp.width * scale
             val h = bmp.height * scale
             val textH = 18f + 14f * items.size
-            if (i == 0) newPage() else need(h + textH + 30f)
-            c!!.drawText("Photo ${i + 1}", margin, y + 12f, bold)
+            if (i == 0 || y + h + textH + 30f > ph - 40f) newPage()
+            pdf.text(margin, y + 12f, "Photo ${i + 1}", fb, 11f)
             y += 20f
-            val left = margin + (maxW - w) / 2
-            c!!.drawBitmap(bmp, null, RectF(left, y, left + w, y + h), Paint(Paint.FILTER_BITMAP_FLAG))
+            pdf.bitmap(bmp, margin + (maxW - w) / 2, y, w, h, quality)
+            if (bmp !== src) bmp.recycle()
+            src.recycle()
+            if (pdf.imageBytes > limit) return null
             y += h + 14f
             items.forEach { item ->
-                c!!.drawText("• ${item.value}   (${item.type}, ${timeFmt.format(Date(item.time))})", margin, y, mono)
+                pdf.text(margin, y, pdf.fit("• ${item.value}   (${item.type}, ${timeFmt.format(Date(item.time))})", fm, 11f, maxW), fm, 11f)
                 y += 14f
             }
             y += 16f
-            bmp.recycle()
         }
-        page?.let { doc.finishPage(it) }
-        file.outputStream().use { doc.writeTo(it) }
-        doc.close()
+        return pdf
     }
 
     private fun fit(text: String, p: Paint, width: Float): String {
