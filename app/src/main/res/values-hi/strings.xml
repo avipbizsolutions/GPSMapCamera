@@ -52,6 +52,7 @@
     <string name="docs_empty">अभी कोई Document नहीं।
 शुरू करने के लिए “नया Document स्कैन करें” दबाएँ।</string>
     <string name="docs_name_title">इस PDF का नाम (%1$d पेज)</string>
+    <string name="docs_making">छोटा PDF बनाया जा रहा है…</string>
     <string name="docs_save">सेव करें</string>
     <string name="docs_saved">PDF Documents/SolarSite Pro में सेव हुआ</string>
     <string name="docs_save_failed">PDF सेव नहीं हो सका</string>

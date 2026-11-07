@@ -210,8 +210,10 @@ class DocScannerActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
             if (result.resultCode != Activity.RESULT_OK) return@registerForActivityResult
             val scan = GmsDocumentScanningResult.fromActivityResultIntent(result.data)
-            val pdf = scan?.pdf ?: return@registerForActivityResult
-            askNameAndSave(pdf.uri, pdf.pageCount)
+            val pages = scan?.pages?.map { it.imageUri }.orEmpty()
+            val pdf = scan?.pdf
+            if (pages.isEmpty() && pdf == null) return@registerForActivityResult
+            askNameAndSave(pages, pdf?.uri, if (pages.isNotEmpty()) pages.size else pdf!!.pageCount)
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -245,7 +247,7 @@ class DocScannerActivity : AppCompatActivity() {
         val options = GmsDocumentScannerOptions.Builder()
             .setGalleryImportAllowed(true)
             .setPageLimit(100)
-            .setResultFormats(GmsDocumentScannerOptions.RESULT_FORMAT_PDF)
+            .setResultFormats(GmsDocumentScannerOptions.RESULT_FORMAT_JPEG, GmsDocumentScannerOptions.RESULT_FORMAT_PDF)
             .setScannerMode(GmsDocumentScannerOptions.SCANNER_MODE_FULL)
             .build()
         GmsDocumentScanning.getClient(options).getStartScanIntent(this)
@@ -257,7 +259,7 @@ class DocScannerActivity : AppCompatActivity() {
             }
     }
 
-    private fun askNameAndSave(source: Uri, pages: Int) {
+    private fun askNameAndSave(pageImages: List<Uri>, scannerPdf: Uri?, pages: Int) {
         val input = EditText(this).apply {
             setText("Scan " + SimpleDateFormat("dd-MM-yyyy HH.mm", Locale.US).format(Date()))
             setSelectAllOnFocus(true)
@@ -272,16 +274,26 @@ class DocScannerActivity : AppCompatActivity() {
             .setTitle(getString(R.string.docs_name_title, pages))
             .setView(box)
             .setCancelable(false)
-            .setPositiveButton(R.string.docs_save) { _, _ -> save(source, input.text.toString()) }
+            .setPositiveButton(R.string.docs_save) { _, _ -> save(pageImages, scannerPdf, input.text.toString()) }
             .setNegativeButton(R.string.cancel, null)
             .show()
         input.requestFocus()
     }
 
-    private fun save(source: Uri, name: String) {
+    private fun save(pageImages: List<Uri>, scannerPdf: Uri?, name: String) {
+        Toast.makeText(this, R.string.docs_making, Toast.LENGTH_SHORT).show()
         lifecycleScope.launch {
             val saved = withContext(Dispatchers.IO) {
-                runCatching { ScanStore.save(this@DocScannerActivity, source, name) }.getOrNull()
+                runCatching {
+                    // Our own compact PDF (under 1.8 MB); the scanner's own PDF only as a fallback.
+                    val small = runCatching { CompactPdf.fromPages(this@DocScannerActivity, pageImages) }.getOrNull()
+                    val source = small?.let { Uri.fromFile(it) } ?: scannerPdf ?: error("No pages")
+                    try {
+                        ScanStore.save(this@DocScannerActivity, source, name)
+                    } finally {
+                        small?.delete()
+                    }
+                }.getOrNull()
             }
             if (saved == null) {
                 Toast.makeText(this@DocScannerActivity, R.string.docs_save_failed, Toast.LENGTH_LONG).show()

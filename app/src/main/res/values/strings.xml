@@ -66,6 +66,7 @@
     <string name="docs_empty">No documents yet.
 Tap “Scan new document” to start.</string>
     <string name="docs_name_title">Name this PDF (%1$d pages)</string>
+    <string name="docs_making">Making a small PDF…</string>
     <string name="docs_save">Save</string>
     <string name="docs_saved">PDF saved in Documents/SolarSite Pro</string>
     <string name="docs_save_failed">Could not save the PDF</string>
