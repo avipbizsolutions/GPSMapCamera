@@ -21,10 +21,14 @@ object Registration {
     /** Must match SHARED_KEY in apps-script/Code.gs. */
     private const val SHARED_KEY = "avip-gpscam-reg-7Q2x"
 
+    /** Must match UPDATE_KEY in apps-script/Code.gs: updates the app version of an existing row. */
+    private const val UPDATE_KEY = "avip-gpscam-ver-5Kp9"
+
     private const val PREFS = "registration"
     private const val KEY_DONE = "registered"
     private const val KEY_UPLOADED = "uploaded"
     private const val KEY_DATA = "data"
+    private const val KEY_SYNCED_VERSION = "synced_version"
     private const val KEY_INSTALL_ID = "install_id"
 
     @Volatile
@@ -63,15 +67,22 @@ object Registration {
     fun uploadPendingAsync(context: Context) {
         val app = context.applicationContext
         val p = prefs(app)
-        if (!p.getBoolean(KEY_DONE, false) || p.getBoolean(KEY_UPLOADED, false)) return
+        if (!p.getBoolean(KEY_DONE, false)) return
+        val uploaded = p.getBoolean(KEY_UPLOADED, false)
+        val version = AppVersion.name(app)
+        // Registered and the sheet already shows this version: nothing to send.
+        if (uploaded && p.getString(KEY_SYNCED_VERSION, null) == version) return
         if (ENDPOINT.isBlank() || uploading) return
         uploading = true
         Thread {
             try {
                 val data = JSONObject(p.getString(KEY_DATA, "{}") ?: "{}")
-                    .put("key", SHARED_KEY)
-                    .put("appVersion", AppVersion.name(app))
-                if (post(data.toString())) p.edit().putBoolean(KEY_UPLOADED, true).apply()
+                    .put("key", if (uploaded) UPDATE_KEY else SHARED_KEY)
+                    .put("appVersion", version)
+                    .put("android", Build.VERSION.RELEASE)
+                if (post(data.toString())) {
+                    p.edit().putBoolean(KEY_UPLOADED, true).putString(KEY_SYNCED_VERSION, version).apply()
+                }
             } catch (_: Exception) {
             } finally {
                 uploading = false
