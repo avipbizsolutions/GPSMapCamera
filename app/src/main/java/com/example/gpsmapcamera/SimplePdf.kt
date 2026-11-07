@@ -37,8 +37,8 @@ class SimplePdf {
     val imageBytes get() = images.sumOf { it.data.size.toLong() }
 
     fun newPage() {
-        pages += StringBuilder()
-        pageImages += ArrayList()
+        pages.add(StringBuilder())
+        pageImages.add(ArrayList())
     }
 
     private val cur get() = pages.last()
@@ -95,9 +95,9 @@ class SimplePdf {
 
     /** Draws a JPEG image in the box [x, top, w, h]. */
     fun jpeg(data: ByteArray, pxW: Int, pxH: Int, x: Float, top: Float, w: Float, h: Float, gray: Boolean = false) {
-        images += Img(data, pxW, pxH, gray)
+        images.add(Img(data, pxW, pxH, gray))
         val index = images.size - 1
-        pageImages.last() += index
+        pageImages.last().add(index)
         cur.append("q\n${f(w)} 0 0 ${f(h)} ${f(x)} ${f(y(top + h))} cm\n/Im$index Do\nQ\n")
     }
 
