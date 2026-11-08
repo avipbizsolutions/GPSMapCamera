@@ -51,14 +51,14 @@ jobs:
       - name: Build link APK and Play bundle
         run: |
           set -o pipefail
-          gradle assembleGithubDebug bundlePlayRelease assemblePlayRelease --console=plain 2>&1 | tee build.log
+          gradle assembleGithubRelease bundlePlayRelease assemblePlayRelease --console=plain 2>&1 | tee build.log
           # Link version (self-updating)
-          cp app/build/outputs/apk/github/debug/app-github-debug.apk "SolarSite-Pro-${VERSION_NAME}.apk"
+          cp app/build/outputs/apk/github/release/app-github-release.apk "SolarSite-Pro-${VERSION_NAME}.apk"
           # Fixed names, so .../releases/latest/download/SolarSite-Pro.apk always gets the newest.
           # AVIP-Tools.apk and AVIP-GPSCam.apk keep the old shared links working.
-          cp app/build/outputs/apk/github/debug/app-github-debug.apk SolarSite-Pro.apk
-          cp app/build/outputs/apk/github/debug/app-github-debug.apk AVIP-Tools.apk
-          cp app/build/outputs/apk/github/debug/app-github-debug.apk AVIP-GPSCam.apk
+          cp app/build/outputs/apk/github/release/app-github-release.apk SolarSite-Pro.apk
+          cp app/build/outputs/apk/github/release/app-github-release.apk AVIP-Tools.apk
+          cp app/build/outputs/apk/github/release/app-github-release.apk AVIP-GPSCam.apk
           # Play Store bundle
           if [ "$PLAY_SIGNED" = "true" ]; then
             cp app/build/outputs/bundle/playRelease/app-play-release.aab AVIP-Tools-play.aab

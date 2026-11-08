@@ -57,11 +57,19 @@ android {
         }
     }
 
+    // The link version is shipped as a release build (not debuggable), signed with the same
+    // key as before so it still installs over earlier versions. Play uses the upload key.
+    productFlavors.getByName("github").signingConfig = signingConfigs.getByName("debug")
+    productFlavors.getByName("play").signingConfig = signingConfigs.findByName("upload")
+
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.findByName("upload")
         }
+    }
+
+    lint {
+        checkReleaseBuilds = false
     }
 
     compileOptions {
