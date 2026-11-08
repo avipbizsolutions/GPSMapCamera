@@ -17,6 +17,7 @@
     <string name="tool_serials_sub">Barcode और Panel के Serial Number</string>
     <string name="tool_photos">मेरी Photos और Videos</string>
     <string name="tool_photos_sub">अपनी GPS Photos देखें, शेयर करें या हटाएँ</string>
+    <string name="home_section_avip">AVIP Solar की ओर से</string>
     <string name="bsc_title">Bihar Solar Circle</string>
     <string name="bsc_subtitle">बिहार के Solar Vendors और Installers का नेटवर्क · जुड़ें · साथ काम करें · आगे बढ़ें</string>
     <string name="bsc_join_group">Group जॉइन करें</string>

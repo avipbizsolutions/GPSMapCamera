@@ -20,6 +20,7 @@
     <string name="tool_serials_sub">Barcodes &amp; panel serial numbers</string>
     <string name="tool_photos">My Photos &amp; Videos</string>
     <string name="tool_photos_sub">View, share or delete your GPS photos</string>
+    <string name="home_section_avip">From AVIP Solar</string>
     <string name="bsc_title">Bihar Solar Circle</string>
     <string name="bsc_subtitle">Bihar\'s network of solar vendors &amp; installers · Connect · Collaborate · Grow</string>
     <string name="bsc_join_group">Join Group</string>
