@@ -51,6 +51,38 @@ class HomeActivity : AppCompatActivity() {
             getString(R.string.home_version, AppVersion.name(this))
     }
 
+    /** Opens the group invite in WhatsApp or WhatsApp Business; asks which when both are installed. */
+    private fun joinGroup() {
+        val url = getString(R.string.bsc_group_url)
+        val apps = listOf(
+            "com.whatsapp" to getString(R.string.bsc_whatsapp),
+            "com.whatsapp.w4b" to getString(R.string.bsc_whatsapp_business),
+        ).filter { isInstalled(it.first) }
+        fun openIn(pkg: String) {
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).setPackage(pkg))
+            } catch (_: Exception) {
+                openLink(url)
+            }
+        }
+        when (apps.size) {
+            0 -> openLink(url) // no WhatsApp: the web page offers to install it
+            1 -> openIn(apps[0].first)
+            else -> androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.bsc_join_with)
+                .setItems(apps.map { it.second }.toTypedArray()) { _, which -> openIn(apps[which].first) }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+    }
+
+    private fun isInstalled(pkg: String): Boolean = try {
+        packageManager.getPackageInfo(pkg, 0)
+        true
+    } catch (_: Exception) {
+        false
+    }
+
     private fun openLink(url: String) {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
