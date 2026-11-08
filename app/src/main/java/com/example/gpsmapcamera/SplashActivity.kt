@@ -38,6 +38,8 @@ class SplashActivity : AppCompatActivity() {
     private lateinit var loadingRow: View
     private var leaving = false
     private var pendingRelease: ReleaseInfo? = null
+    /** A newer version exists: updating is mandatory, the app does not open without it. */
+    private var required: ReleaseInfo? = null
 
     private val prefs by lazy { getSharedPreferences("settings", MODE_PRIVATE) }
 
@@ -54,14 +56,14 @@ class SplashActivity : AppCompatActivity() {
                         } catch (_: Exception) {
                         }
                     }
-                    goToNext()
+                    failed()
                 }
                 PackageInstaller.STATUS_SUCCESS -> {
                     // Android restarts the app process with the new version.
                 }
                 else -> {
                     toast(getString(R.string.update_failed))
-                    goToNext()
+                    failed()
                 }
             }
         }
@@ -72,6 +74,8 @@ class SplashActivity : AppCompatActivity() {
             val release = pendingRelease
             if (release != null && Updater.canInstall(this)) {
                 lifecycleScope.launch { downloadAndInstall(release) }
+            } else if (release != null) {
+                askInstallPermission(release)
             } else {
                 goToNext()
             }
@@ -131,6 +135,13 @@ class SplashActivity : AppCompatActivity() {
         // Send a registration that couldn't be uploaded earlier (e.g. offline).
         Registration.uploadPendingAsync(this)
 
+        // While a mandatory update is pending, Back closes the app instead of skipping it.
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (required != null) finishAffinity() else finish()
+            }
+        })
+
         ContextCompat.registerReceiver(
             this, installStatusReceiver, IntentFilter(Updater.ACTION_INSTALL_STATUS),
             ContextCompat.RECEIVER_NOT_EXPORTED
@@ -148,17 +159,17 @@ class SplashActivity : AppCompatActivity() {
             // Wait up to 8 s on slow mobile data so a new version is not missed.
             val latest = withTimeoutOrNull(8000) { withContext(Dispatchers.IO) { Updater.fetchLatest() } }
 
+            UpdateWatch.markChecked()
             if (latest != null && latest.versionCode > versionCode) {
                 pendingRelease = latest
+                required = latest
                 if (Updater.canInstall(this@SplashActivity)) {
                     downloadAndInstall(latest)
-                    return@launch
-                }
-                if (prefs.getLong(KEY_DECLINED_VERSION, 0L) != latest.versionCode) {
+                } else {
                     minimumShow.await()
                     askInstallPermission(latest)
-                    return@launch
                 }
+                return@launch
             }
             minimumShow.await()
             goToNext()
@@ -187,7 +198,7 @@ class SplashActivity : AppCompatActivity() {
         }
         if (apk == null) {
             toast(getString(R.string.update_failed))
-            goToNext()
+            failed()
             return
         }
         statusText.text = getString(R.string.installing_update)
@@ -196,7 +207,7 @@ class SplashActivity : AppCompatActivity() {
             // Result arrives in installStatusReceiver.
         } catch (_: Exception) {
             toast(getString(R.string.update_failed))
-            goToNext()
+            failed()
         }
     }
 
@@ -215,10 +226,27 @@ class SplashActivity : AppCompatActivity() {
                     )
                 )
             }
-            .setNegativeButton(R.string.later) { _, _ ->
-                prefs.edit().putLong(KEY_DECLINED_VERSION, release.versionCode).apply()
-                goToNext()
+            .setNegativeButton(R.string.update_close_app) { _, _ -> finishAffinity() }
+            .show()
+    }
+
+    /** Update did not finish: when it is mandatory, ask again instead of opening the app. */
+    private fun failed() {
+        val release = required ?: return goToNext()
+        if (isFinishing) return
+        loadingRow.visibility = View.GONE
+        progressBar.visibility = View.GONE
+        statusText.text = getString(R.string.update_required_message, release.versionName)
+        statusText.visibility = View.VISIBLE
+        AlertDialog.Builder(this)
+            .setTitle(R.string.update_required_title)
+            .setMessage(getString(R.string.update_required_message, release.versionName))
+            .setCancelable(false)
+            .setPositiveButton(R.string.update_now) { _, _ ->
+                if (Updater.canInstall(this)) lifecycleScope.launch { downloadAndInstall(release) }
+                else askInstallPermission(release)
             }
+            .setNegativeButton(R.string.update_close_app) { _, _ -> finishAffinity() }
             .show()
     }
 
@@ -237,6 +265,5 @@ class SplashActivity : AppCompatActivity() {
 
     private companion object {
         const val KEY_LAST_VERSION = "last_version_code"
-        const val KEY_DECLINED_VERSION = "declined_update_version"
     }
 }

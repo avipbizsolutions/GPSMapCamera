@@ -146,7 +146,11 @@
     <string name="updated_text">नए Version %1$s में अपडेट हो गया</string>
     <string name="updates_channel">App अपडेट</string>
     <string name="auto_update_title">अपने आप अपडेट</string>
-    <string name="auto_update_message">Version %1$s उपलब्ध है। SolarSite Pro को अपने आप अपडेट रखने के लिए अगली स्क्रीन पर इसे अपडेट इंस्टॉल करने की अनुमति दें। यह सिर्फ़ एक बार करना है।</string>
+    <string name="auto_update_message">Version %1$s उपलब्ध है और आगे इस्तेमाल के लिए ज़रूरी है। SolarSite Pro को अपडेट करने के लिए अगली स्क्रीन पर अपडेट इंस्टॉल करने की अनुमति दें। यह सिर्फ़ एक बार करना है।</string>
+    <string name="update_required_title">अपडेट ज़रूरी है</string>
+    <string name="update_required_message">आगे इस्तेमाल के लिए SolarSite Pro का Version %1$s ज़रूरी है। कृपया अपडेट करें – एक मिनट से कम लगेगा।</string>
+    <string name="update_now">अभी अपडेट करें</string>
+    <string name="update_close_app">App बंद करें</string>
     <string name="allow">अनुमति दें</string>
     <string name="later">बाद में</string>
     <string name="grid_toggle">Grid Lines और Level दिखाएँ या छिपाएँ</string>

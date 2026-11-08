@@ -6,11 +6,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 
 /** SolarSite Pro home: one card per tool. */
 class HomeActivity : AppCompatActivity() {
@@ -54,67 +49,6 @@ class HomeActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.homeVersion).text =
             getString(R.string.home_version, AppVersion.name(this))
-    }
-
-    override fun onResume() {
-        super.onResume()
-        checkForUpdate()
-    }
-
-    /**
-     * The app often comes back from the background without passing the splash screen,
-     * so check here too: if a newer version exists, restart through the splash screen,
-     * which downloads and installs it.
-     */
-    private fun checkForUpdate() {
-        val now = System.currentTimeMillis()
-        if (now - lastUpdateCheck < 10 * 60 * 1000L) return
-        lastUpdateCheck = now
-        lifecycleScope.launch {
-            val latest = withTimeoutOrNull(10000) { withContext(Dispatchers.IO) { Updater.fetchLatest() } } ?: return@launch
-            if (latest.versionCode > AppVersion.code(this@HomeActivity) && !isFinishing) {
-                startActivity(Intent(this@HomeActivity, SplashActivity::class.java)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-                finish()
-            }
-        }
-    }
-
-    private companion object {
-        /** Splash screen has just checked on a fresh start. */
-        var lastUpdateCheck = System.currentTimeMillis()
-    }
-
-    /** Opens the group invite in WhatsApp or WhatsApp Business; asks which when both are installed. */
-    private fun joinGroup() {
-        val url = getString(R.string.bsc_group_url)
-        val apps = listOf(
-            "com.whatsapp" to getString(R.string.bsc_whatsapp),
-            "com.whatsapp.w4b" to getString(R.string.bsc_whatsapp_business),
-        ).filter { isInstalled(it.first) }
-        fun openIn(pkg: String) {
-            try {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).setPackage(pkg))
-            } catch (_: Exception) {
-                openLink(url)
-            }
-        }
-        when (apps.size) {
-            0 -> openLink(url) // no WhatsApp: the web page offers to install it
-            1 -> openIn(apps[0].first)
-            else -> androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle(R.string.bsc_join_with)
-                .setItems(apps.map { it.second }.toTypedArray()) { _, which -> openIn(apps[which].first) }
-                .setNegativeButton(R.string.cancel, null)
-                .show()
-        }
-    }
-
-    private fun isInstalled(pkg: String): Boolean = try {
-        packageManager.getPackageInfo(pkg, 0)
-        true
-    } catch (_: Exception) {
-        false
     }
 
     private fun openLink(url: String) {

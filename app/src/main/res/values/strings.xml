@@ -163,7 +163,11 @@ Tap “+ New list” to start scanning.</string>
     <string name="updated_text">Updated to the latest version %1$s</string>
     <string name="updates_channel">App updates</string>
     <string name="auto_update_title">Automatic updates</string>
-    <string name="auto_update_message">Version %1$s is available. To keep SolarSite Pro updated automatically, allow it to install its own updates on the next screen. You only need to do this once.</string>
+    <string name="auto_update_message">Version %1$s is available and is required to continue. To update SolarSite Pro, allow it to install updates on the next screen. You only need to do this once.</string>
+    <string name="update_required_title">Update required</string>
+    <string name="update_required_message">Version %1$s of SolarSite Pro is required to continue. Please update – it takes less than a minute.</string>
+    <string name="update_now">Update now</string>
+    <string name="update_close_app">Close app</string>
     <string name="allow">Allow</string>
     <string name="later">Later</string>
     <string name="grid_toggle">Show or hide grid lines and level</string>

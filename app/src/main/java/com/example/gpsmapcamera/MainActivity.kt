@@ -117,6 +117,9 @@ class MainActivity : AppCompatActivity() {
     private var videoCapture: VideoCapture<Recorder>? = null
     private var recording: Recording? = null
 
+    /** Used by [UpdateWatch] so an update never interrupts a video. */
+    fun isRecordingVideo() = recording != null
+
     private var currentLocation: Location? = null
     private var geocodedLocation: Location? = null
     private var placeInfo = PlaceInfo.EMPTY
