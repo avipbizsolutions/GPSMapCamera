@@ -165,7 +165,23 @@ object SerialShare {
         y += 18f
         pdf.text(margin, y, "${list.items.size} serial numbers · ${photos.size} label photos · " +
             "report made ${timeFmt.format(Date())}", fr, 11f)
-        y += 22f
+        y += 26f
+
+        // Serial numbers only, one per line and nothing else on the line,
+        // so they can be selected and copied straight from the PDF.
+        pdf.text(margin, y, "Serial numbers (select and copy)", fb, 12f, navy)
+        y += 6f; pdf.line(margin, y, pw - margin, y, lineColor); y += 16f
+        list.items.forEach {
+            if (y + 16f > ph - 40f) newPage()
+            pdf.text(margin, y, it.value, fm, 12f)
+            y += 16f
+        }
+
+        // Full details on a new page
+        newPage()
+        y += 6f
+        pdf.text(margin, y, "Details", fb, 12f, navy)
+        y += 20f
 
         val cols = floatArrayOf(margin, margin + 36f, margin + 270f, margin + 350f, margin + 470f)
         fun header() {
