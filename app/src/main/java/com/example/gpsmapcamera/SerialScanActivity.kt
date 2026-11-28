@@ -88,7 +88,8 @@ class SerialScanActivity : AppCompatActivity() {
     private lateinit var worker: ExecutorService
     private var camera: Camera? = null
     private var imageCapture: ImageCapture? = null
-    private var torchOn = false
+    /** 0 off, 1 auto, 2 on, 3 torch (light stays on). */
+    private var flashMode = 0
     private var tone: ToneGenerator? = null
     private var busy = false
 
@@ -125,10 +126,19 @@ class SerialScanActivity : AppCompatActivity() {
         itemsView.layoutManager = LinearLayoutManager(this)
         itemsView.adapter = adapter
 
+        flashMode = getSharedPreferences("serial_scan", MODE_PRIVATE).getInt("flash_mode", 0)
+        torchButton.contentDescription = getString(R.string.flash_toggle)
+        applyFlash()
         torchButton.setOnClickListener {
-            torchOn = !torchOn
-            camera?.cameraControl?.enableTorch(torchOn)
-            torchButton.isSelected = torchOn
+            flashMode = (flashMode + 1) % 4
+            getSharedPreferences("serial_scan", MODE_PRIVATE).edit().putInt("flash_mode", flashMode).apply()
+            applyFlash()
+            Toast.makeText(this, when (flashMode) {
+                1 -> R.string.flash_auto
+                2 -> R.string.flash_on
+                3 -> R.string.flash_torch
+                else -> R.string.flash_off
+            }, Toast.LENGTH_SHORT).show()
         }
         findViewById<View>(R.id.captureSerialButton).setOnClickListener { capture() }
         findViewById<View>(R.id.pickPhotoButton).setOnClickListener {
@@ -182,11 +192,33 @@ class SerialScanActivity : AppCompatActivity() {
                 provider.unbindAll()
                 camera = provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
                 imageCapture = capture
-                camera?.cameraControl?.enableTorch(torchOn)
+                applyFlash()
             } catch (e: Exception) {
                 Toast.makeText(this, getString(R.string.camera_failed, e.message ?: ""), Toast.LENGTH_SHORT).show()
             }
         }, ContextCompat.getMainExecutor(this))
+    }
+
+    /** Flash for the label photo: off / auto / on, or torch to light the label while aiming. */
+    private fun applyFlash() {
+        val cam = camera
+        if (cam != null && !cam.cameraInfo.hasFlashUnit()) {
+            torchButton.visibility = View.GONE
+            return
+        }
+        imageCapture?.flashMode = when (flashMode) {
+            1 -> ImageCapture.FLASH_MODE_AUTO
+            2 -> ImageCapture.FLASH_MODE_ON
+            else -> ImageCapture.FLASH_MODE_OFF
+        }
+        cam?.cameraControl?.enableTorch(flashMode == 3)
+        torchButton.setImageResource(when (flashMode) {
+            1 -> R.drawable.ic_flash_auto
+            2 -> R.drawable.ic_flash_on
+            3 -> R.drawable.ic_torch
+            else -> R.drawable.ic_flash_off
+        })
+        torchButton.isSelected = flashMode == 3
     }
 
     /** Takes a photo and reads it. */
