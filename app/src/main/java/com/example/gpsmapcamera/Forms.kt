@@ -22,7 +22,7 @@ import java.util.Locale
  * Small helpers for the calculator screens: dark background, a top bar with Back,
  * labelled number boxes that remember their last value, and result rows.
  */
-class Forms(private val activity: Activity, private val prefsName: String) {
+class Forms(private val activity: androidx.activity.ComponentActivity, private val prefsName: String) {
 
     private val dp = activity.resources.displayMetrics.density
     private val prefs = activity.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
