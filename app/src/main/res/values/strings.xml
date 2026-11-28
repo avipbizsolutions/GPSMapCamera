@@ -171,6 +171,11 @@ Tap “+ New list” to start scanning.</string>
     <string name="update_close_app">Close app</string>
     <string name="allow">Allow</string>
     <string name="later">Later</string>
+    <string name="flash_toggle">Flash: off / auto / on / torch</string>
+    <string name="flash_off">Flash off</string>
+    <string name="flash_auto">Flash auto</string>
+    <string name="flash_on">Flash on</string>
+    <string name="flash_torch">Torch on – light stays on</string>
     <string name="grid_toggle">Show or hide grid lines and level</string>
     <string name="zoom_05">.5x</string>
     <string name="zoom_1">1x</string>

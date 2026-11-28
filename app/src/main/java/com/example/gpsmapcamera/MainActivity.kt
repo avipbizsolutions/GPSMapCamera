@@ -81,6 +81,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var gridOverlay: GridOverlayView
     private lateinit var gridButton: ImageButton
+    private lateinit var flashButton: ImageButton
+
+    /** 0 off, 1 auto, 2 on, 3 torch (light stays on). Video uses off / torch only. */
+    private var flashMode = 0
     private lateinit var headingProvider: HeadingProvider
     private lateinit var tiltProvider: TiltProvider
 
@@ -206,6 +210,7 @@ class MainActivity : AppCompatActivity() {
         zoomChips.forEach { (chip, ratio) -> chip.setOnClickListener { setZoom(ratio) } }
         setupGestures()
         setupGridAndLevel()
+        setupFlash()
 
         hd = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_HD, true)
         qualityChip.setOnClickListener { toggleQuality() }
@@ -253,6 +258,46 @@ class MainActivity : AppCompatActivity() {
         stampPreview.removeCallbacks(stampTicker)
         headingProvider.stop()
         tiltProvider.stop()
+    }
+
+    private fun setupFlash() {
+        flashButton = findViewById(R.id.flashButton)
+        flashMode = getSharedPreferences(PREFS, MODE_PRIVATE).getInt("flash_mode", 0)
+        flashButton.setOnClickListener {
+            flashMode = if (mode == Mode.VIDEO) (if (flashMode == 3) 0 else 3) else (flashMode + 1) % 4
+            getSharedPreferences(PREFS, MODE_PRIVATE).edit().putInt("flash_mode", flashMode).apply()
+            applyFlash()
+            toast(getString(when (effectiveFlash()) {
+                1 -> R.string.flash_auto
+                2 -> R.string.flash_on
+                3 -> R.string.flash_torch
+                else -> R.string.flash_off
+            }))
+        }
+    }
+
+    /** Video can't fire a flash, so only torch or off. */
+    private fun effectiveFlash() = if (mode == Mode.VIDEO && flashMode in 1..2) 0 else flashMode
+
+    private fun applyFlash() {
+        val cam = camera
+        val hasFlash = cam?.cameraInfo?.hasFlashUnit() == true
+        flashButton.visibility = if (hasFlash) View.VISIBLE else View.GONE
+        if (!hasFlash) return
+        val f = effectiveFlash()
+        imageCapture?.flashMode = when (f) {
+            1 -> ImageCapture.FLASH_MODE_AUTO
+            2 -> ImageCapture.FLASH_MODE_ON
+            else -> ImageCapture.FLASH_MODE_OFF
+        }
+        cam?.cameraControl?.enableTorch(f == 3)
+        flashButton.setImageResource(when (f) {
+            1 -> R.drawable.ic_flash_auto
+            2 -> R.drawable.ic_flash_on
+            3 -> R.drawable.ic_torch
+            else -> R.drawable.ic_flash_off
+        })
+        flashButton.isSelected = f == 3
     }
 
     private fun setupGridAndLevel() {
@@ -372,6 +417,7 @@ class MainActivity : AppCompatActivity() {
                 videoCapture = capture
             }
             lastZoom = null
+            applyFlash()
             camera?.cameraInfo?.zoomState?.observe(this) { onZoomChanged(it) }
             keepZoom?.let { setZoom(it) }
         } catch (e: Exception) {
@@ -717,7 +763,7 @@ class MainActivity : AppCompatActivity() {
         stampPreview.render(previewMap, currentLocation, placeInfo, Date(), headingProvider.heading)
 
         val iconAngle = if (deg == 270) -90f else deg.toFloat()
-        val icons = listOf<View>(gridButton, qualityChip, thumbnail, shareButton, zoomLabel) +
+        val icons = listOf<View>(gridButton, flashButton, qualityChip, thumbnail, shareButton, zoomLabel) +
             zoomChips.map { it.first }
         icons.forEach { it.animate().rotation(iconAngle).setDuration(250).start() }
     }

@@ -154,6 +154,11 @@
     <string name="update_close_app">App बंद करें</string>
     <string name="allow">अनुमति दें</string>
     <string name="later">बाद में</string>
+    <string name="flash_toggle">Flash: बंद / Auto / चालू / टॉर्च</string>
+    <string name="flash_off">Flash बंद</string>
+    <string name="flash_auto">Flash Auto</string>
+    <string name="flash_on">Flash चालू</string>
+    <string name="flash_torch">टॉर्च चालू – लाइट जलती रहेगी</string>
     <string name="grid_toggle">Grid Lines और Level दिखाएँ या छिपाएँ</string>
     <string name="waiting_gps">GPS का इंतज़ार… (जल्दी Fix के लिए बाहर जाएँ)</string>
     <string name="location_off">Location बंद है। Settings में चालू करें।</string>
