@@ -160,6 +160,85 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- Sales & EPC tools -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/toolCalc"
+                style="@style/ToolCard"
+                android:layout_marginEnd="6dp">
+
+                <ImageView
+                    style="@style/ToolIcon"
+                    android:background="@drawable/tool_icon_bg_calc"
+                    android:src="@drawable/ic_tool_calc" />
+
+                <TextView
+                    style="@style/ToolTitle"
+                    android:text="@string/tool_calc" />
+
+                <TextView
+                    style="@style/ToolSubtitle"
+                    android:text="@string/tool_calc_sub" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/toolShadow"
+                style="@style/ToolCard"
+                android:layout_marginStart="6dp">
+
+                <ImageView
+                    style="@style/ToolIcon"
+                    android:background="@drawable/tool_icon_bg_sun"
+                    android:src="@drawable/ic_tool_sun" />
+
+                <TextView
+                    style="@style/ToolTitle"
+                    android:text="@string/tool_shadow" />
+
+                <TextView
+                    style="@style/ToolSubtitle"
+                    android:text="@string/tool_shadow_sub" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/toolCable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/tool_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <ImageView
+                style="@style/ToolIcon"
+                android:background="@drawable/tool_icon_bg_cable"
+                android:src="@drawable/ic_tool_cable" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/ToolTitle"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/tool_cable" />
+
+                <TextView
+                    style="@style/ToolSubtitle"
+                    android:text="@string/tool_cable_sub" />
+            </LinearLayout>
+        </LinearLayout>
+
         <!-- My photos & videos, full width -->
         <LinearLayout
             android:id="@+id/toolPhotos"

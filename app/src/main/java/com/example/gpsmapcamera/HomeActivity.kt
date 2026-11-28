@@ -21,6 +21,9 @@ class HomeActivity : AppCompatActivity() {
         open(R.id.toolDocs, DocScannerActivity::class.java)
         open(R.id.toolSerials, SerialListsActivity::class.java)
         open(R.id.toolPhotos, GalleryActivity::class.java)
+        open(R.id.toolCalc, SolarCalcActivity::class.java)
+        open(R.id.toolShadow, ShadowCheckActivity::class.java)
+        open(R.id.toolCable, CableCalcActivity::class.java)
 
         // Each number calls itself.
         findViewById<View>(R.id.callPhone1).setOnClickListener { dial(getString(R.string.company_phone)) }
